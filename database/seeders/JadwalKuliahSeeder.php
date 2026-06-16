@@ -22,7 +22,7 @@ class JadwalKuliahSeeder extends Seeder
                 'hari'           => 'Senin',
                 'jam_mulai'      => '08:30:00',
                 'jam_selesai'    => '09:30:00',
-                'ruangan'        => 'Kampus Berkoh - Ruang 2.1',
+                'ruangan'        => 'K.B - Ruang 2.1',
                 'status'         => 'aktif',
             ],
             [
@@ -30,7 +30,7 @@ class JadwalKuliahSeeder extends Seeder
                 'hari'           => 'Senin',
                 'jam_mulai'      => '11:00:00',
                 'jam_selesai'    => '13:00:00',
-                'ruangan'        => 'Kampus Berkoh - Ruang 2.1',
+                'ruangan'        => 'K.B - Ruang 2.1',
                 'status'         => 'aktif',
             ],
             [
@@ -38,7 +38,7 @@ class JadwalKuliahSeeder extends Seeder
                 'hari'           => 'Selasa',
                 'jam_mulai'      => '08:30:00',
                 'jam_selesai'    => '09:30:00',
-                'ruangan'        => 'Kampus Suwatio - Ruang 1.2',
+                'ruangan'        => 'K.S - Ruang 1.2',
                 'status'         => 'aktif',
             ],
             [
@@ -46,7 +46,7 @@ class JadwalKuliahSeeder extends Seeder
                 'hari'           => 'Rabu',
                 'jam_mulai'      => '10:00:00',
                 'jam_selesai'    => '12:00:00',
-                'ruangan'        => 'Kampus Berkoh - Ruang 2.3',
+                'ruangan'        => 'K.B - Ruang 2.3',
                 'status'         => 'aktif',
             ],
             [
@@ -54,7 +54,7 @@ class JadwalKuliahSeeder extends Seeder
                 'hari'           => 'Kamis',
                 'jam_mulai'      => '09:30:00',
                 'jam_selesai'    => '11:00:00',
-                'ruangan'        => 'Kampus Berkoh - Ruang 2.3',
+                'ruangan'        => 'K.B - Ruang 2.3',
                 'status'         => 'aktif',
             ],
             [
@@ -62,7 +62,7 @@ class JadwalKuliahSeeder extends Seeder
                 'hari'           => 'Jumat',
                 'jam_mulai'      => '09:30:00',
                 'jam_selesai'    => '11:30:00',
-                'ruangan'        => 'Kampus Berkoh - Lab 2',
+                'ruangan'        => 'K.B - Lab 2',
                 'status'         => 'aktif',
             ],
         ];
