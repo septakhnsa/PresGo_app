@@ -12,6 +12,15 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        return $request->expectsJson() ? null : route('login');
+        if ($request->expectsJson()) {
+            return null;
+        }
+
+        // Admin panel lives under /admin, everything else is the mahasiswa portal.
+        if ($request->is('admin') || $request->is('admin/*')) {
+            return route('login');
+        }
+
+        return route('mahasiswa.login');
     }
 }
