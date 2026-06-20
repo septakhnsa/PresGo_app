@@ -127,7 +127,7 @@ html, body { height: 100%; overflow: hidden; }
 /* ── Kartu putih ────────────────────────────────── */
 .np-card {
     flex: 1;
-    background: #fff;
+    background: #F1F5F9;
     border-radius: 28px 28px 0 0;
     overflow: visible;           /* biarkan ikon mencuat ke atas */
     display: flex;
@@ -135,7 +135,7 @@ html, body { height: 100%; overflow: hidden; }
     align-items: center;
     position: relative;
     z-index: 2;
-    margin-top: -32px;
+    margin-top: -113px;
 }
 
 /* ── Ikon gembok — oval/pill mencuat ke area hijau ── */
@@ -146,7 +146,7 @@ html, body { height: 100%; overflow: hidden; }
     position: relative;
     z-index: 5;
 
-    width: 90px; height: 52px;   /* oval pill */
+    width: 108px; height: 103px;   /* oval pill */
     border-radius: 999px;
     background: #DCEEE1;
     border: 5px solid #fff;

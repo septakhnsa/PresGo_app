@@ -102,7 +102,7 @@ html, body { height: 100%; overflow: hidden; }
 /* ── Kartu putih ────────────────────────────────── */
 .otp-card {
     flex: 1;
-    background: #fff;
+    background: #F1F5F9;
     border-radius: 28px 28px 0 0;
     overflow: visible;           /* biarkan ikon mencuat ke atas */
     display: flex;
@@ -110,18 +110,18 @@ html, body { height: 100%; overflow: hidden; }
     align-items: center;
     position: relative;
     z-index: 2;
-    margin-top: -32px;
+    margin-top: -115px;
 }
 
 /* ── Ikon amplop mencuat ke area hijau ──────────── */
 .otp-icon-circle {
-    margin-top: -48px;
-    margin-bottom: 16px;
+    margin-top: -38px;
+    margin-bottom: 20px;
     flex-shrink: 0;
     position: relative;
-    z-index: 5;
+    z-index: 20;
 
-    width: 96px; height: 56px;   /* oval / pill shape */
+    width: 111px; height: 107px;   /* oval / pill shape */
     border-radius: 999px;
     background: #DCEEE1;
     border: 5px solid #fff;

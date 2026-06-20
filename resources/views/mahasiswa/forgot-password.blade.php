@@ -5,41 +5,38 @@
 @section('content')
 <div class="fp-screen">
 
-    {{-- Header hijau --}}
+    {{-- Area hijau atas --}}
     <div class="fp-header">
         <a href="{{ route('mahasiswa.login') }}" class="fp-back-btn">
             <i class="fa-solid fa-arrow-left"></i>
         </a>
     </div>
 
-    {{-- Kartu putih --}}
+    {{-- Kartu putih bawah --}}
     <div class="fp-card">
 
-        {{-- Ikon gembok: margin-top negatif agar mencuat ke area hijau --}}
-        {{-- fp-card punya overflow:visible jadi TIDAK terpotong --}}
+        {{-- Ikon gembok mencuat --}}
         <div class="fp-icon-circle">
-            <svg width="56" height="66" viewBox="0 0 56 66" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Shackle (baut atas gembok) -->
-                <path d="M10 28V20C10 10.059 18.059 2 28 2C37.941 2 46 10.059 46 20V28" 
-                      stroke="#1A5E35" stroke-width="5" stroke-linecap="round" fill="none"/>
-                <!-- Badan gembok -->
-                <rect x="4" y="26" width="48" height="38" rx="7" fill="#1A5E35"/>
-                <!-- Tanda tanya -->
-                <text x="28" y="53" text-anchor="middle" 
-                      fill="white" 
-                      font-family="Plus Jakarta Sans, Arial, sans-serif" 
-                      font-size="22" 
+            <svg width="52" height="62" viewBox="0 0 52 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 26V18C9 9.163 16.163 2 25 2C33.837 2 41 9.163 41 18V26"
+                      stroke="#1A5E35" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+                <rect x="3" y="24" width="44" height="36" rx="7" fill="#1A5E35"/>
+                <text x="25" y="50" text-anchor="middle"
+                      fill="white"
+                      font-family="Plus Jakarta Sans, Arial, sans-serif"
+                      font-size="22"
                       font-weight="900">?</text>
             </svg>
         </div>
 
-        {{-- Semua konten ada di sini, bisa scroll --}}
+        {{-- Konten --}}
         <div class="fp-scroll">
             <div class="fp-body">
+
                 <h1 class="fp-title">Lupa Password?</h1>
                 <p class="fp-subtitle">
                     Masukkan email aktif anda.<br>
-                    Akan kami kirimkan kode OTP untuk verifikasi.
+                    Akan kami kirimkan kode OTP untuk verifikasi
                 </p>
 
                 @if (session('success'))
@@ -56,7 +53,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('mahasiswa.forgot-password.submit') }}" method="POST" id="forgotForm">
+                <form action="{{ route('mahasiswa.forgot-password.submit') }}" method="POST">
                     @csrf
                     <div class="fp-field-group">
                         <label for="email">Email</label>
@@ -65,103 +62,124 @@
                             placeholder="email@mhs.kampus.ac.id"
                             value="{{ old('email') }}" required autofocus>
                     </div>
-                    <div class="fp-btn-wrap">
-                        <button type="submit" class="fp-btn-otp">Kirim Kode OTP</button>
-                    </div>
+                    <button type="submit" class="fp-btn-otp">Kirim Kode OTP</button>
                 </form>
+
             </div>
         </div>
-
     </div>
 </div>
 @endsection
 
 @push('styles')
 <style>
-html, body { height: 100%; overflow: hidden; }
+/* ── Override parent ──────────────────────────── */
+html, body {
+    height: 100% !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
-/* ── Layar penuh hijau ─────────────────────────── */
+.app-screen {
+    height: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* ── Wrapper utama full hijau ─────────────────── */
 .fp-screen {
     display: flex;
     flex-direction: column;
     height: 100%;
     width: 100%;
     background: #1A5E35;
-    position: relative;
     overflow: hidden;
+    position: relative;
 }
 
-/* ── Header hijau (±42% tinggi) ────────────────── */
+/* ── Area hijau atas (±38% layar) ────────────── */
 .fp-header {
-    flex: 0 0 42%;
+    flex: 0 0 38%;
     display: flex;
     align-items: flex-start;
-    padding: 40px 20px 0;
+    padding: 44px 20px 0;
     flex-shrink: 0;
 }
 
-/* Tombol kembali */
+/* Tombol back */
 .fp-back-btn {
-    width: 38px; height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 16px; text-decoration: none;
+    background: #ffffff26;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 15px;
+    text-decoration: none;
     transition: background 0.2s;
 }
-.fp-back-btn:hover { background: rgba(255,255,255,0.25); }
+.fp-back-btn:hover { background: #ffffff40; }
 
-/* ── Kartu putih ────────────────────────────────── */
+/* ── Kartu abu-abu bawah ──────────────────────── */
 .fp-card {
     flex: 1;
     background: #F1F5F9;
     border-radius: 28px 28px 0 0;
-    /* overflow VISIBLE agar ikon tidak terpotong ke atas */
     overflow: visible;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 2;
-    margin-top: -32px;
+    margin-top: -90px;
 }
 
-/* ── Ikon gembok (mencuat ke area hijau) ─────────── */
+/* ── Ikon gembok mencuat ke atas ──────────────── */
 .fp-icon-circle {
-    margin-top: -54px;
-    margin-bottom: 20px;
+    margin-top: -56px;
+    margin-bottom: 16px;
     flex-shrink: 0;
     position: relative;
     z-index: 5;
-
-    width: 112px; height: 112px;
+    width: 113px;
+    height: 108px;
     border-radius: 50%;
     background: #DCEEE1;
     border: 6px solid #F1F5F9;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.13);
-    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px #00000022;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* ── Area scroll (di dalam kartu) ───────────────── */
+/* ── Area scroll ──────────────────────────────── */
 .fp-scroll {
     flex: 1;
     width: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
+.fp-scroll::-webkit-scrollbar { display: none; }
 
-/* ── Isi konten ─────────────────────────────────── */
+/* ── Isi konten ───────────────────────────────── */
 .fp-body {
-    padding: 0 28px 48px;
+    padding: 4px 28px 48px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    max-width: 420px;
+    max-width: 480px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* ── Teks ───────────────────────────────────────── */
+/* ── Judul & subtitle ─────────────────────────── */
 .fp-title {
     color: #1A5E35;
     font-size: 20px;
@@ -172,11 +190,11 @@ html, body { height: 100%; overflow: hidden; }
     color: #6B7280;
     font-size: 13px;
     font-weight: 500;
-    line-height: 1.6;
-    margin: 0 0 28px;
+    line-height: 1.65;
+    margin: 0 0 24px;
 }
 
-/* ── Alert ──────────────────────────────────────── */
+/* ── Alert ────────────────────────────────────── */
 .fp-alert {
     width: 100%;
     border-radius: 10px;
@@ -188,51 +206,59 @@ html, body { height: 100%; overflow: hidden; }
     align-items: flex-start;
     gap: 8px;
     text-align: left;
+    box-sizing: border-box;
 }
 .fp-alert-error   { background: #FEE2E2; color: #DC2626; }
 .fp-alert-success { background: #D1FAE5; color: #065F46; }
 
-/* ── Form ───────────────────────────────────────── */
+/* ── Form ─────────────────────────────────────── */
+form { width: 100%; }
+
 .fp-field-group {
     width: 100%;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     text-align: left;
 }
 .fp-field-group label {
     display: block;
-    color: #6B7280;
+    color: #374151;
     font-size: 13px;
     font-weight: 700;
     margin-bottom: 8px;
 }
 .fp-field-group input {
     width: 100%;
-    padding: 14px 16px;
-    border-radius: 12px;
+    padding: 13px 16px;
+    border-radius: 10px;
     border: 1.5px solid #D1D5DB;
     background: #fff;
     font-family: inherit;
     font-size: 14px;
     color: #374151;
     outline: none;
+    box-sizing: border-box;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 .fp-field-group input::placeholder { color: #9CA3AF; }
 .fp-field-group input:focus {
     border-color: #1A5E35;
-    box-shadow: 0 0 0 3px rgba(26,94,53,0.10);
+    box-shadow: 0 0 0 3px #1a5e3520;
 }
 
-/* ── Tombol ─────────────────────────────────────── */
-.fp-btn-wrap { width: 100%; display: flex; justify-content: center; }
+/* ── Tombol ───────────────────────────────────── */
 .fp-btn-otp {
-    width: 100%; max-width: 240px;
-    padding: 14px 20px;
-    background: #1A5E35; color: #fff;
-    border: none; border-radius: 999px;
-    font-size: 14px; font-weight: 800;
-    cursor: pointer; letter-spacing: 0.3px;
-    transition: background-color 0.2s, transform 0.1s;
+    width: 100%;
+    padding: 14px;
+    background: #1A5E35;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: background 0.2s, transform 0.1s;
 }
 .fp-btn-otp:hover  { background: #154a2a; }
 .fp-btn-otp:active { transform: scale(0.98); }

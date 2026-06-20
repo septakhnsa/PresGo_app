@@ -298,7 +298,115 @@
                 box-shadow: none;
             }
         }
-    </style>
+
+                /* ================= FIX GARIS ATAS ================= */
+
+        html,
+        body,
+        .app-screen,
+        .pf-wrap,
+        .pf-topbar,
+        .pf-header,
+        .pf-tabs {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .pf-topbar {
+            position: relative !important;
+            top: unset !important;
+            background: #1B5E35;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .pf-header {
+            height: 48px;
+            background: #1B5E35;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+
+            padding: 0 20px;
+
+            margin: 0;
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .pf-header::before,
+        .pf-header::after,
+        .pf-tabs::before,
+        .pf-tabs::after {
+            display: none !important;
+            content: none !important;
+        }
+
+        .pf-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+
+            background: #1B5E35;
+
+            margin: 0;
+            padding: 0 20px;
+
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .pf-tab {
+            position: relative;
+            flex: 1;
+            text-align: center;
+            padding: 10px 0 14px;
+
+            color: #a3c4b0;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+
+            border: none !important;
+        }
+
+        .pf-tab.active {
+            color: #fff;
+        }
+
+        .pf-tab.active::after {
+            content: "";
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            height: 3px;
+            background: #FFD54F;
+        }
+
+        /* Hilangkan garis render Chrome */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hilangkan garis yang sering muncul pada mode inspect */
+        .app-screen > * {
+            overflow: visible !important;
+        }
+
+        /* Hilangkan garis 1px akibat anti-aliasing */
+        .pf-header {
+            margin-bottom: -1px;
+        }
+
+        .pf-tabs {
+            margin-top: -1px;
+        }
+            </style>
 
     @stack('styles')
 </head>
