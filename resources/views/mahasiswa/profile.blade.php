@@ -26,7 +26,7 @@ html, body {
 
     .pf-header {
         background: #1B5E35;
-        padding: 14px 20px 0;
+        padding: 56px 42px 32px;
         display: flex;
         justify-content: flex-end;
     }

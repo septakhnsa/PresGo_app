@@ -23,7 +23,7 @@
     ══════════════════════════════ */
     .h-header {
         background: #1B5E35;
-        padding: 36px 20px 0;   /* 36px = fake status bar */
+        padding: 25px 24px 0;   /* 36px = fake status bar */
         flex-shrink: 0;
         z-index: 20;
         position: relative;
@@ -64,7 +64,8 @@
     /* Tab bar */
     .h-tabs {
         display: flex;
-        justify-content: space-around;
+        justify-content: center;
+        gap: 32px;
     }
     .h-tab {
         color: #8DB89B;
@@ -73,7 +74,6 @@
         padding: 10px 0 14px;
         text-decoration: none;
         border-bottom: 3px solid transparent;
-        flex: 1;
         text-align: center;
         cursor: pointer;
     }
@@ -464,7 +464,7 @@
             width: 100%;
         }
         .h-tabs {
-            justify-content: flex-start;
+            justify-content: center;
             gap: 32px;
         }
         .h-tab {
