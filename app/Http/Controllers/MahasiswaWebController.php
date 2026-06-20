@@ -14,9 +14,13 @@ class MahasiswaWebController extends Controller
      */
     public function splash()
     {
-        // If a mahasiswa is already logged in, skip straight to their home.
-        if (Auth::check() && Auth::user()->role === 'mahasiswa') {
-            return redirect()->route('mahasiswa.home');
+        if (Auth::check()) {
+            if (Auth::user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            if (Auth::user()->role === 'mahasiswa') {
+                return redirect()->route('mahasiswa.home');
+            }
         }
 
         return view('mahasiswa.splash');
@@ -27,8 +31,13 @@ class MahasiswaWebController extends Controller
      */
     public function showLoginForm()
     {
-        if (Auth::check() && Auth::user()->role === 'mahasiswa') {
-            return redirect()->route('mahasiswa.home');
+        if (Auth::check()) {
+            if (Auth::user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            if (Auth::user()->role === 'mahasiswa') {
+                return redirect()->route('mahasiswa.home');
+            }
         }
 
         // Prefill NIM/email if previously remembered via "Ingat NIM" checkbox.
@@ -38,7 +47,7 @@ class MahasiswaWebController extends Controller
     }
 
     /**
-     * Handle Login (NIM or Email + Password)
+     * Handle Login (NIM atau Email + Password) — untuk role mahasiswa & admin
      */
     public function login(Request $request)
     {
@@ -60,14 +69,20 @@ class MahasiswaWebController extends Controller
                 ->withInput($request->only('login'));
         }
 
-        if ($user->role !== 'mahasiswa') {
-            return back()
-                ->withErrors(['login' => 'Akun ini bukan akun mahasiswa. Silakan gunakan halaman login admin.'])
-                ->withInput($request->only('login'));
-        }
-
         Auth::login($user, $request->boolean('ingat_nim'));
         $request->session()->regenerate();
+
+        // Admin langsung diarahkan ke dashboard admin
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->role !== 'mahasiswa') {
+            Auth::logout();
+            return back()
+                ->withErrors(['login' => 'Akun ini tidak memiliki akses ke halaman ini.'])
+                ->withInput($request->only('login'));
+        }
 
         $response = redirect()->route('mahasiswa.home');
 
@@ -130,8 +145,6 @@ class MahasiswaWebController extends Controller
 
     /**
      * Simple placeholder home page after login.
-     * (Not part of the supplied Figma frames — added so the login flow
-     * has somewhere to land. Replace with the real student dashboard later.)
      */
     public function home()
     {

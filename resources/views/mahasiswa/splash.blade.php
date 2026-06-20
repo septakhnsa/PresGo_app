@@ -48,8 +48,8 @@
         transform: translate(-50%, -50%);
         width: 100vw;
         height: 80px;
-        background-color: #f0ce28;
-        opacity: 1.50;
+        background-color: #EFEBE0;
+        opacity: 1.25;
         z-index: -1;
     }
 
@@ -63,7 +63,15 @@
         justify-content: center;
         position: relative;
         z-index: 1;
+        box-shadow: 0 0 32px 10px rgba(0, 0, 0, 0.35);  /* ← tambah ini */
     }
+
+    .splash-logo-box {
+        /* ... sisanya sama ... */
+        box-shadow: 0 0 32px 10px rgba(33, 32, 27, 0.35);
+        transition: box-shadow 0.3s ease;
+    }
+
 
     .splash-logo-box span {
         font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;

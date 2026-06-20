@@ -53,7 +53,7 @@
                 <label class="figma-checkbox">
                     <input type="checkbox" name="ingat_nim" value="1"
                         {{ $rememberedLogin ?? false ? 'checked' : '' }}>
-                    <span>Ingat NIM</span>
+                    <span>Ingat Saya</span>
                 </label>
                 <a href="{{ route('mahasiswa.forgot-password') }}" class="forgot-pwd-link">Lupa Password?</a>
             </div>

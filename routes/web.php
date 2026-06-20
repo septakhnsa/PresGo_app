@@ -53,8 +53,9 @@ Route::middleware(['auth'])->group(function () {
 // ───────────────────────────────────────────────────────────────────────────
 // Admin Web Login (unchanged)
 // ───────────────────────────────────────────────────────────────────────────
-Route::get('/login', [AdminWebController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AdminWebController::class, 'loginWeb']);
+Route::get('/login', function () {
+    return redirect()->route('mahasiswa.login');
+})->name('login');
 
 // Auto Login route from Flutter App
 Route::get('/admin/auto-login', [AdminWebController::class, 'autoLogin'])->name('admin.auto_login');
