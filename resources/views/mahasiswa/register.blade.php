@@ -40,13 +40,6 @@
                 </div>
 
                 <div class="figma-form-group">
-                    <label>NIM</label>
-                    <div class="figma-field-wrap">
-                        <input type="text" name="nim" id="nim" placeholder="ketik disini.." value="{{ old('nim') }}" required>
-                    </div>
-                </div>
-
-                <div class="figma-form-group">
                     <label>Email</label>
                     <div class="figma-field-wrap">
                         <input type="email" name="email" id="email" placeholder="ketik disini.." value="{{ old('email') }}" required>
@@ -83,24 +76,56 @@
 @push('styles')
 <style>
     /* 100% Match Figma Register Design */
+    html, body { margin: 0; }
+
     .figma-register-screen {
         background-color: #1A5E35 !important;
+        background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+        background-size: 26px 26px;
         position: relative;
+        min-height: 100vh;
+        display: flex;
+        overflow: hidden;
+    }
+
+    .figma-register-screen::before,
+    .figma-register-screen::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .figma-register-screen::before {
+        width: 420px;
+        height: 420px;
+        top: -160px;
+        left: -160px;
+    }
+
+    .figma-register-screen::after {
+        width: 520px;
+        height: 520px;
+        bottom: -220px;
+        right: -200px;
     }
 
     .register-scroll-container {
         flex: 1;
-        overflow-y: auto;
         display: flex;
         flex-direction: column;
         justify-content: center; /* Center the whole block vertically if there's extra space */
-        padding-top: 20px;
+        padding: 32px 0;
         position: relative;
+        width: 100%;
+        z-index: 1;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 600px) {
         .register-scroll-container {
-            max-width: 450px;
+            max-width: 440px;
             margin: 0 auto;
             width: 100%;
         }
@@ -180,7 +205,7 @@
     .register-content-wrap {
         position: relative;
         z-index: 2;
-        padding: 0 28px 32px;
+        padding: 0 28px 8px;
     }
 
     .figma-form-group {
@@ -210,6 +235,7 @@
         font-size: 13.5px;
         color: #333;
         outline: none;
+        box-sizing: border-box;
     }
 
     .figma-field-wrap input::placeholder {

@@ -48,7 +48,7 @@
         transform: translate(-50%, -50%);
         width: 100vw;
         height: 80px;
-        background-color: #ede5c9;
+        background-color: #f0ce28;
         opacity: 1.50;
         z-index: -1;
     }

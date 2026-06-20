@@ -323,7 +323,7 @@ html, body {
 .figma-btn-login {
     flex: 1;
     padding: 15px;
-    background: #FDE047;
+    background: #f9d521;
     color: #111827;
     border: none;
     border-radius: 999px;
@@ -337,7 +337,7 @@ html, body {
 }
 
 .figma-btn-login:hover {
-    box-shadow: 0 4px 20px rgba(253, 224, 71, 0.60);
+    box-shadow: 0 4px 20px rgba(243, 221, 112, 0.6);
 }
 
 .figma-btn-login:active {
@@ -350,8 +350,8 @@ html, body {
     min-width: 50px;
     border-radius: 50%;
     background: transparent;
-    border: 2px solid #FDE047;
-    color: #FDE047;
+    border: 2px solid #f0ce28;
+    color: #f0ce28;
     font-size: 22px;
     display: flex;
     align-items: center;
