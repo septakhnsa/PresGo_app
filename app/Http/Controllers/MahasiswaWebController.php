@@ -149,4 +149,46 @@ class MahasiswaWebController extends Controller
 
         return redirect()->route('splash');
     }
+
+    /**
+     * Dashboard Presensi (Rekap)
+     */
+    public function dashboardPresensi()
+    {
+        $user = Auth::user();
+        return view('mahasiswa.dashboard-presensi', compact('user'));
+    }
+
+    /**
+     * Notifikasi
+     */
+    public function notifikasi()
+    {
+        $user = Auth::user();
+        return view('mahasiswa.Notification', compact('user'));
+    }
+
+    /**
+     * Camera Presensi
+     */
+    public function camera()
+    {
+        return view('mahasiswa.camera');
+    }
+
+    /**
+     * Profile
+     */
+    public function profile()
+    {
+        return view('mahasiswa.profile');
+    }
+
+    /**
+     * History
+     */
+    public function history()
+    {
+        return view('mahasiswa.history');
+    }
 }

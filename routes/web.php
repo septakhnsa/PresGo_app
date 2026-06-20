@@ -41,8 +41,13 @@ Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name(
 Route::get('/password-verified', [AuthController::class, 'showPasswordVerified'])->name('mahasiswa.password.verified');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/beranda', [MahasiswaWebController::class, 'home'])->name('mahasiswa.home');
-    Route::post('/keluar', [MahasiswaWebController::class, 'logout'])->name('mahasiswa.logout');
+    Route::get('/beranda',             [MahasiswaWebController::class, 'home'])->name('mahasiswa.home');
+    Route::get('/dashboard-presensi', [MahasiswaWebController::class, 'dashboardPresensi'])->name('mahasiswa.dashboard-presensi');
+    Route::get('/notifikasi',          [MahasiswaWebController::class, 'notifikasi'])->name('mahasiswa.notifikasi');
+    Route::get('/profile',             [MahasiswaWebController::class, 'profile'])->name('mahasiswa.profile');
+    Route::get('/history',             [MahasiswaWebController::class, 'history'])->name('mahasiswa.history');
+    Route::get('/presensi/camera',     [MahasiswaWebController::class, 'camera'])->name('mahasiswa.presensi.camera');
+    Route::post('/keluar',             [MahasiswaWebController::class, 'logout'])->name('mahasiswa.logout');
 });
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -56,19 +61,11 @@ Route::get('/admin/auto-login', [AdminWebController::class, 'autoLogin'])->name(
 
 // Protected Web Admin Panel Routes
 Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminWebController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/dashboard/api', [AdminWebController::class, 'dashboardApi'])->name('admin.dashboard.api');
-    Route::get('/jadwal', [AdminWebController::class, 'jadwal'])->name('admin.jadwal');
-    Route::get('/mahasiswa', [AdminWebController::class, 'mahasiswa'])->name('admin.mahasiswa');
+    Route::get('/dashboard',              [AdminWebController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/dashboard/api',          [AdminWebController::class, 'dashboardApi'])->name('admin.dashboard.api');
+    Route::get('/jadwal',                 [AdminWebController::class, 'jadwal'])->name('admin.jadwal');
+    Route::get('/mahasiswa',              [AdminWebController::class, 'mahasiswa'])->name('admin.mahasiswa');
     Route::post('/mahasiswa/{id}/verify', [AdminWebController::class, 'verifyMahasiswa'])->name('admin.mahasiswa.verify');
-    Route::get('/presensi', [AdminWebController::class, 'presensi'])->name('admin.presensi');
-    Route::post('/logout', [AdminWebController::class, 'logout'])->name('admin.logout');
-
-    Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard-presensi', [MahasiswaWebController::class, 'dashboardPresensi'])->name('mahasiswa.dashboard-presensi');
-    Route::get('/notifikasi', [MahasiswaWebController::class, 'notifikasi'])->name('mahasiswa.notifikasi');
-    Route::get('/profile', [MahasiswaWebController::class, 'profile'])->name('mahasiswa.profile');
-    Route::get('/history', [MahasiswaWebController::class, 'history'])->name('mahasiswa.history');
-    Route::get('/presensi/camera', [MahasiswaWebController::class, 'camera'])->name('mahasiswa.presensi.camera');
-});
+    Route::get('/presensi',               [AdminWebController::class, 'presensi'])->name('admin.presensi');
+    Route::post('/logout',                [AdminWebController::class, 'logout'])->name('admin.logout');
 });

@@ -28,27 +28,42 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(180deg, #EDE7D2 0%, #EDE7D2 100%);
+            background: #D4E0D5; /* light green desktop bg */
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 16px;
         }
 
-        /* Phone-like canvas so the page reads close to the Figma frame on desktop,
-           while staying fully fluid on real mobile browsers. */
+        /* Phone-like canvas — fills full viewport on real mobile, centered frame on desktop */
         .app-screen {
             position: relative;
             width: 100%;
-            max-width: 420px;
-            min-height: 760px;
-            background-color: var(--green);
-            border-radius: 28px;
+            height: 100vh;
+            background-color: #f1f5f9;
+            border-radius: 0;
             overflow: hidden;
-            box-shadow: 0 24px 60px rgba(20, 36, 27, 0.35);
+            box-shadow: none;
             display: flex;
             flex-direction: column;
+            /* children that use height:100% will fill this */
+        }
+
+        /* Any direct children page wrappers fill the screen */
+        .app-screen > * {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        @media (min-width: 481px) {
+            body { padding: 0; }
+            .app-screen {
+                height: 100vh;
+                max-height: none;
+            }
         }
 
         .stripe {
@@ -273,9 +288,15 @@
             padding: 6px 12px;
         }
 
+        /* On real mobile, remove frame styling — fill full viewport */
         @media (max-width: 480px) {
-            body { padding: 0; }
-            .app-screen { border-radius: 0; min-height: 100vh; box-shadow: none; }
+            body { padding: 0; align-items: stretch; }
+            .app-screen {
+                border-radius: 0;
+                height: 100vh;
+                max-height: 100vh;
+                box-shadow: none;
+            }
         }
     </style>
 
