@@ -48,8 +48,8 @@
         transform: translate(-50%, -50%);
         width: 100vw;
         height: 80px;
-        background-color: #D4C9A0;
-        opacity: 0.28;
+        background-color: #ede5c9;
+        opacity: 1.50;
         z-index: -1;
     }
 

@@ -15,7 +15,6 @@
         overflow: hidden;
     }
 
-    /* ── HEADER ── */
     .pf-header {
         background: #1B5E35;
         padding: 40px 20px 24px;
@@ -32,19 +31,26 @@
         font-weight: 800;
         margin: 0;
     }
+    .pf-header-inner {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
     .pf-tabs {
         display: flex;
         background: #1B5E35;
         justify-content: center;
         gap: 0;
         flex-shrink: 0;
-        border-bottom: 2px solid rgba(255,255,255,0.12);
+        border-bottom: 2px solid #2d7a4a;
     }
     .pf-tab {
         flex: 1;
         text-align: center;
         padding: 12px 0;
-        color: rgba(255,255,255,0.65);
+        color: #a3c4b0;
         font-size: 13px;
         font-weight: 700;
         text-decoration: none;
@@ -56,7 +62,6 @@
         border-bottom: 3px solid #FFD54F;
     }
 
-    /* ── BODY ── */
     .pf-body {
         flex: 1;
         overflow-y: auto;
@@ -66,7 +71,6 @@
     }
     .pf-body::-webkit-scrollbar { display: none; }
 
-    /* Avatar card */
     .pf-avatar-card {
         background: #fff;
         border-radius: 20px;
@@ -76,7 +80,7 @@
         align-items: center;
         gap: 12px;
         margin-bottom: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        box-shadow: 0 2px 12px #0000000f;
     }
     .pf-avatar-img {
         width: 90px;
@@ -84,7 +88,7 @@
         border-radius: 50%;
         border: 4px solid #1B5E35;
         object-fit: cover;
-        box-shadow: 0 4px 16px rgba(27,94,53,0.25);
+        box-shadow: 0 4px 16px #1b5e3540;
     }
     .pf-avatar-name {
         font-size: 18px;
@@ -107,13 +111,12 @@
         border: 1.5px solid #6EE7B7;
     }
 
-    /* Info card */
     .pf-info-card {
         background: #fff;
         border-radius: 20px;
         padding: 20px;
         margin-bottom: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        box-shadow: 0 2px 12px #0000000f;
     }
     .pf-info-title {
         font-size: 13px;
@@ -150,7 +153,6 @@
         word-break: break-word;
     }
 
-    /* Action buttons */
     .pf-actions {
         display: flex;
         flex-direction: column;
@@ -172,11 +174,12 @@
         border: none;
         text-decoration: none;
         transition: all 0.15s;
+        box-sizing: border-box;
     }
     .pf-btn-primary {
         background: #1B5E35;
         color: #fff;
-        box-shadow: 0 4px 14px rgba(27,94,53,0.3);
+        box-shadow: 0 4px 14px #1b5e354d;
     }
     .pf-btn-primary:hover { background: #14532D; }
     .pf-btn-danger {
@@ -186,7 +189,6 @@
     }
     .pf-btn-danger:hover { background: #FEE2E2; }
 
-    /* ── BOTTOM BAR ── */
     .pf-bottom-bar {
         background: #1B5E35;
         height: 58px;
@@ -194,7 +196,7 @@
         position: relative;
         z-index: 10;
         border-radius: 22px 22px 0 0;
-        box-shadow: 0 -2px 12px rgba(0,0,0,0.12);
+        box-shadow: 0 -2px 12px #0000001f;
     }
     .pf-fab {
         position: absolute;
@@ -206,7 +208,7 @@
         border-radius: 50%;
         background: #1B5E35;
         border: 4px solid #fff;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 14px #00000033;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -217,32 +219,28 @@
     }
     .pf-fab:hover { transform: translateX(-50%) scale(1.07); }
 
-    /* ══════════════════════════════
-       RESPONSIVE DESKTOP ADJUSTMENTS
-    ══════════════════════════════ */
     @media (min-width: 768px) {
-        /* Header: background tetap full-width, content di-center via padding */
         .pf-header {
-            padding-left: max(24px, calc((100% - 900px) / 2));
-            padding-right: max(24px, calc((100% - 900px) / 2));
+            padding-left: 24px;
+            padding-right: 24px;
         }
-        /* Tabs: background full-width, tab item tengah */
+        .pf-header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+        }
         .pf-tabs {
-            gap: 0;
             justify-content: center;
         }
         .pf-tab {
             flex: 0 1 auto;
             min-width: 120px;
         }
-        /* Body content centered */
         .pf-body {
             max-width: 900px;
             margin: 0 auto;
             width: 100%;
             padding: 24px 24px 0;
         }
-        /* Sembunyikan bottom bar, pakai fixed FAB */
         .pf-bottom-bar {
             display: none;
         }
@@ -256,6 +254,9 @@
         }
         .pf-fab:hover { transform: scale(1.08); }
     }
+
+    .status-verified   { color: #065F46; }
+    .status-unverified { color: #DC2626; }
 </style>
 @endpush
 
@@ -270,27 +271,26 @@
 
 <div class="pf-wrap">
 
-    {{-- ── HEADER ── --}}
+    {{-- HEADER --}}
     <div class="pf-header">
-        <div>
+        <div class="pf-header-inner">
             <h1>Profile</h1>
+            <a href="{{ route('mahasiswa.notifikasi') }}" style="color:#ffffffcc; font-size:20px; text-decoration:none;">
+                <i class="fa-solid fa-bell"></i>
+            </a>
         </div>
-        <a href="{{ route('mahasiswa.notifikasi') }}" style="color:rgba(255,255,255,0.8); font-size:20px; text-decoration:none;">
-            <i class="fa-solid fa-bell"></i>
-        </a>
     </div>
 
-    {{-- ── TABS ── --}}
+    {{-- TABS --}}
     <div class="pf-tabs">
         <span class="pf-tab active">Profile</span>
         <a href="{{ route('mahasiswa.home') }}" class="pf-tab">Home</a>
         <a href="{{ route('mahasiswa.history') }}" class="pf-tab">History</a>
     </div>
 
-    {{-- ── BODY ── --}}
+    {{-- BODY --}}
     <div class="pf-body">
 
-        {{-- Avatar card --}}
         <div class="pf-avatar-card">
             <img src="{{ $avatarUrl }}" class="pf-avatar-img" alt="Foto Profil">
             <div class="pf-avatar-name">{{ $userName }}</div>
@@ -298,7 +298,6 @@
             <div class="pf-role-badge"><i class="fa-solid fa-graduation-cap"></i> Mahasiswa</div>
         </div>
 
-        {{-- Info card --}}
         <div class="pf-info-card">
             <div class="pf-info-title">
                 <i class="fa-solid fa-id-card"></i> Informasi Akun
@@ -325,13 +324,12 @@
             </div>
             <div class="pf-info-row">
                 <span class="pf-info-label">Status</span>
-                <span class="pf-info-value" style="color:{{ $user->nim ? '#065F46' : '#DC2626' }}">
+               <span class="pf-info-value {{ $user->nim ? 'status-verified' : 'status-unverified' }}">
                     {{ $user->nim ? 'Terverifikasi' : 'Belum Diverifikasi' }}
                 </span>
             </div>
         </div>
 
-        {{-- Actions --}}
         <div class="pf-actions">
             <a href="{{ route('mahasiswa.home') }}" class="pf-btn pf-btn-primary">
                 <i class="fa-solid fa-house"></i> Kembali ke Beranda
@@ -347,7 +345,7 @@
         <div style="height: 80px;"></div>
     </div>
 
-    {{-- ── BOTTOM BAR ── --}}
+    {{-- BOTTOM BAR --}}
     <div class="pf-bottom-bar">
         <a href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();" class="pf-fab" aria-label="Keluar">
             <i class="fa-solid fa-right-from-bracket"></i>
