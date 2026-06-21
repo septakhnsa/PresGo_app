@@ -148,7 +148,46 @@ class MahasiswaWebController extends Controller
      */
     public function home()
     {
-        return view('mahasiswa.home');
+        \Carbon\Carbon::setLocale('id');
+        $hariIni = now()->translatedFormat('l');
+        $user = Auth::user();
+
+        $jadwalHariIni = $user->jadwals()->where('hari', $hariIni)->with('mataKuliah')->get();
+        
+        // Mode Demo: Jika jadwal personal kosong (misal akun baru), ambil semua jadwal global hari ini
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', $hariIni)->with('mataKuliah')->get();
+        }
+
+        // Mode Demo Lanjutan: Jika hari ini memang libur (Misal Minggu), selalu tampilkan hari Senin
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', 'Senin')->with('mataKuliah')->get();
+        }
+
+        $totalJadwal = $jadwalHariIni->count();
+        $totalAbsen = 0;
+        $nextJadwal = null;
+
+        foreach ($jadwalHariIni as $jadwal) {
+            $absen = \App\Models\Presensi::where('user_id', $user->id)
+                        ->where('jadwal_id', $jadwal->id)
+                        ->where('tanggal', now()->toDateString())
+                        ->first();
+            
+            if ($absen) {
+                $jadwal->sudah_absen = true;
+                $jadwal->foto_wajah = $absen->foto_wajah;
+                $totalAbsen++;
+            } else {
+                $jadwal->sudah_absen = false;
+                $jadwal->foto_wajah = null;
+                if (!$nextJadwal) {
+                    $nextJadwal = $jadwal;
+                }
+            }
+        }
+
+        return view('mahasiswa.home', compact('jadwalHariIni', 'totalJadwal', 'totalAbsen', 'nextJadwal'));
     }
 
     /**
@@ -184,9 +223,59 @@ class MahasiswaWebController extends Controller
     /**
      * Camera Presensi
      */
-    public function camera()
+    public function camera(Request $request)
     {
-        return view('mahasiswa.camera');
+        $jadwalId = $request->query('jadwal_id');
+        $jadwal = null;
+        if ($jadwalId) {
+            $jadwal = \App\Models\JadwalKuliah::with('mataKuliah')->find($jadwalId);
+        }
+        return view('mahasiswa.camera', compact('jadwal', 'jadwalId'));
+    }
+
+    /**
+     * Submit Presensi Web
+     */
+    public function submitPresensi(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|string', // base64
+        ]);
+
+        $photoData = $request->input('photo');
+        $photoData = str_replace('data:image/jpeg;base64,', '', $photoData);
+        $photoData = str_replace(' ', '+', $photoData);
+        $imageName = 'attendance_' . Auth::id() . '_' . time() . '.jpeg';
+        
+        \Illuminate\Support\Facades\Storage::disk('public')->put('attendances/' . $imageName, base64_decode($photoData));
+
+        $jadwalId = $request->input('jadwal_id');
+        if (!$jadwalId) {
+            $jadwal = \App\Models\JadwalKuliah::first();
+            if ($jadwal) {
+                $jadwalId = $jadwal->id;
+            }
+        }
+
+        \App\Models\Presensi::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'jadwal_id' => $jadwalId,
+                'tanggal' => now()->toDateString(),
+            ],
+            [
+                'jam_masuk' => now()->toTimeString(),
+                'status_wajah' => 'valid',
+                'foto_wajah' => 'attendances/' . $imageName,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Presensi berhasil dicatat!',
+        ]);
     }
 
     /**

@@ -115,8 +115,9 @@
         position: absolute;
         width: 40px;
         height: 40px;
-        border-color: #4ADE80;
+        border-color: #DC2626;
         border-style: solid;
+        transition: border-color 0.2s;
     }
     .cam-frame::before {
         top: 0; left: 0;
@@ -132,8 +133,9 @@
         position: absolute;
         width: 40px;
         height: 40px;
-        border-color: #4ADE80;
+        border-color: #DC2626;
         border-style: solid;
+        transition: border-color 0.2s;
     }
     .cam-frame-bl {
         bottom: 0; left: 0;
@@ -144,6 +146,12 @@
         bottom: 0; right: 0;
         border-width: 0 3px 3px 0;
         border-radius: 0 0 8px 0;
+    }
+    .cam-frame.detected::before,
+    .cam-frame.detected::after,
+    .cam-frame.detected .cam-frame-bl,
+    .cam-frame.detected .cam-frame-br {
+        border-color: #4ADE80;
     }
 
     /* Scan line animation */
@@ -315,8 +323,8 @@
     {{-- ── INFO STRIP ── --}}
     <div class="cam-info-strip">
         <div>
-            <div class="cam-course-name" id="courseNameDisplay">Mobile Programming</div>
-            <div class="cam-course-meta" id="courseMetaDisplay">KBR 2.3 · 10.00 – 12.00</div>
+            <div class="cam-course-name" id="courseNameDisplay">{{ $jadwal ? ($jadwal->mataKuliah->nama_mk ?? 'Presensi Umum') : 'Presensi Umum' }}</div>
+            <div class="cam-course-meta" id="courseMetaDisplay">{{ $jadwal ? $jadwal->ruangan . ' · ' . substr($jadwal->jam_mulai,0,5) . ' – ' . substr($jadwal->jam_selesai,0,5) : '' }}</div>
         </div>
         <div class="cam-live-badge">
             <i class="fa-solid fa-circle" style="font-size:6px;"></i> LIVE
@@ -337,6 +345,16 @@
 
         {{-- Hint text --}}
         <div class="cam-hint" id="camHint">Posisikan wajah di dalam bingkai</div>
+
+        {{-- Confirmation overlay --}}
+        <div class="cam-result-overlay" id="camConfirm">
+            <div class="cam-result-text" style="margin-bottom: 8px;">Konfirmasi Foto</div>
+            <div class="cam-result-sub" style="margin-bottom: 24px;">Wajah terdeteksi. Apakah foto ini sudah sesuai?</div>
+            <div style="display:flex; gap:16px;">
+                <button class="cam-shutter-inner" style="width:auto; padding:0 24px; border-radius:999px; background:#4B5563; font-size:14px; font-weight:bold; cursor:pointer; border:none;" onclick="cancelConfirm()">Ulangi</button>
+                <button class="cam-shutter-inner" style="width:auto; padding:0 24px; border-radius:999px; font-size:14px; font-weight:bold; cursor:pointer; border:none;" onclick="proceedSubmit()">Absen Sekarang</button>
+            </div>
+        </div>
 
         {{-- Result overlay --}}
         <div class="cam-result-overlay" id="camResult">
@@ -381,6 +399,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
 <script>
 (function () {
     let stream = null;
@@ -395,6 +414,53 @@
     const btnNotif  = document.getElementById('btnNotif');
     const scanline  = document.getElementById('camScanline');
 
+    let faceDetectorLoaded = false;
+    let isDetecting = false;
+    let lockedFrames = 0;
+    const requiredLockedFrames = 15;
+    let currentPhotoData = null;
+    let currentPos = null;
+
+    /* ── Initialize Face Detection ── */
+    async function initFaceDetection() {
+        hint.textContent = 'Memuat model deteksi wajah...';
+        await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
+        faceDetectorLoaded = true;
+        hint.textContent = 'Posisikan wajah di dalam bingkai';
+        startFaceDetectionLoop();
+    }
+
+    async function startFaceDetectionLoop() {
+        if(isDetecting || !faceDetectorLoaded) return;
+        isDetecting = true;
+        const frame = document.getElementById('camFrame');
+        
+        async function detect() {
+            if (!isDetecting || video.paused || video.ended) {
+                if(isDetecting) requestAnimationFrame(detect);
+                return;
+            }
+
+            const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }));
+            
+            if (detections.length > 0) {
+                frame.classList.add('detected');
+                lockedFrames++;
+                if(lockedFrames >= requiredLockedFrames) {
+                    lockedFrames = 0;
+                    isDetecting = false;
+                    autoCapture();
+                    return; // Stop looping while confirmation is open
+                }
+            } else {
+                frame.classList.remove('detected');
+                lockedFrames = 0;
+            }
+            requestAnimationFrame(detect);
+        }
+        detect();
+    }
+
     /* ── Start camera ── */
     async function startCamera() {
         try {
@@ -408,6 +474,9 @@
             video.srcObject = stream;
             video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
             unavail.classList.remove('show');
+            video.onplay = () => {
+                if(faceDetectorLoaded) startFaceDetectionLoop();
+            };
         } catch (e) {
             unavail.classList.add('show');
             shutter.disabled = true;
@@ -421,15 +490,14 @@
         startCamera();
     };
 
-    /* ── Capture & submit ── */
-    window.captureAndSubmit = function () {
+    /* ── Auto Capture (Face Locked) ── */
+    function autoCapture() {
         if (!stream) return;
-
+        video.pause();
         shutter.disabled = true;
-        hint.textContent = 'Memproses wajah...';
-        scanline.style.animation = 'scan 0.5s ease-in-out infinite';
-
-        // Draw frame to canvas
+        scanline.style.animation = 'none';
+        hint.textContent = 'Wajah terdeteksi!';
+        
         canvas.width  = video.videoWidth  || 640;
         canvas.height = video.videoHeight || 480;
         const ctx = canvas.getContext('2d');
@@ -438,33 +506,66 @@
             ctx.scale(-1, 1);
         }
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        currentPhotoData = canvas.toDataURL('image/jpeg', 0.8);
 
-        const photoData = canvas.toDataURL('image/jpeg', 0.8);
-
-        // Get geolocation
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
-                pos => submitPresensi(photoData, pos.coords.latitude, pos.coords.longitude),
-                ()  => submitPresensi(photoData, null, null),
+                pos => { currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
+                ()  => { currentPos = { lat: null, lng: null }; },
                 { timeout: 5000 }
             );
         } else {
-            submitPresensi(photoData, null, null);
+            currentPos = { lat: null, lng: null };
+        }
+
+        document.getElementById('camConfirm').classList.add('show');
+    }
+
+    /* ── Manual Capture Fallback ── */
+    window.captureAndSubmit = function () {
+        if (!faceDetectorLoaded) return;
+        if(isDetecting) {
+            isDetecting = false; // Stop auto loop
+            autoCapture();
         }
     };
+
+    window.cancelConfirm = function() {
+        document.getElementById('camConfirm').classList.remove('show');
+        video.play();
+        scanline.style.animation = 'scan 2s ease-in-out infinite';
+        shutter.disabled = false;
+        hint.textContent = 'Posisikan wajah di dalam bingkai';
+        document.getElementById('camFrame').classList.remove('detected');
+        lockedFrames = 0;
+        startFaceDetectionLoop();
+    }
+
+    window.proceedSubmit = function() {
+        document.getElementById('camConfirm').classList.remove('show');
+        hint.textContent = 'Menyimpan absensi...';
+        const lat = currentPos ? currentPos.lat : null;
+        const lng = currentPos ? currentPos.lng : null;
+        submitPresensi(currentPhotoData, lat, lng);
+    }
 
     function submitPresensi(photoData, lat, lng) {
         // Send to server (or simulate success for now)
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-        fetch('/api/presensi/submit', {
+        fetch('{{ route("mahasiswa.presensi.submit") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': token,
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ photo: photoData, latitude: lat, longitude: lng })
+            body: JSON.stringify({ 
+                photo: photoData, 
+                latitude: lat, 
+                longitude: lng,
+                jadwal_id: '{{ $jadwalId }}'
+            })
         })
         .then(r => r.json())
         .then(data => {
@@ -512,10 +613,13 @@
         btnNotif.style.display  = 'flex';
         hint.textContent = 'Posisikan wajah di dalam bingkai';
         scanline.style.animation = 'scan 2s ease-in-out infinite';
+        video.play();
+        startFaceDetectionLoop();
     };
 
-    // Kick off camera on load
+    // Kick off camera & detection on load
     startCamera();
+    initFaceDetection();
 
     // Cleanup on unload
     window.addEventListener('beforeunload', () => {

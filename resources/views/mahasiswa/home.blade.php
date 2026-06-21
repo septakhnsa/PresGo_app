@@ -577,7 +577,13 @@
             <div class="h-modal-card">
                 <div class="h-modal-topbar">
                     <span class="h-modal-topbar-date">{{ $dayLabel }}</span>
-                    <span class="h-modal-topbar-badge">Belum absen</span>
+                    @if($totalJadwal == 0)
+                        <span class="h-modal-topbar-badge" style="background:#F3F4F6; color:#4B5563;">Tidak ada jadwal</span>
+                    @elseif($totalAbsen > 0)
+                        <span class="h-modal-topbar-badge" style="background:#D1FAE5; color:#065F46;">{{ $totalAbsen }}/{{ $totalJadwal }} telah absen</span>
+                    @else
+                        <span class="h-modal-topbar-badge">Belum absen</span>
+                    @endif
                 </div>
                 <div class="h-modal-body">
                     <div class="h-modal-greeting">{{ $greeting }}</div>
@@ -624,12 +630,13 @@
         <div class="dash-body">
 
             {{-- Notif pill — klik teks → halaman Notifikasi | klik X → dismiss --}}
+            @if($nextJadwal)
             <div class="dash-notif-pill" id="dashNotifPill">
                 <a href="{{ route('mahasiswa.notifikasi') }}" class="dash-notif-pill-link">
                     <div class="dash-notif-pill-icon"><i class="fa-solid fa-bell"></i></div>
                     <div class="dash-notif-pill-text">
                         <strong style="color:#1B5E35;">PresGo - Baru saja</strong>
-                        &nbsp;Pengingat Presensi | Mobile Programming
+                        &nbsp;Pengingat Presensi | {{ $nextJadwal->mataKuliah->nama_mk ?? 'Mata Kuliah' }}
                         <span class="dash-red">15 Menit lagi &rsaquo;</span>
                     </div>
                 </a>
@@ -638,6 +645,7 @@
                     <i class="fa-regular fa-circle-xmark"></i>
                 </button>
             </div>
+            @endif
 
             {{-- Rekap Kehadiran --}}
             <div class="dash-rekap">
@@ -661,21 +669,30 @@
             {{-- Jadwal Hari Ini --}}
             <div class="dash-jadwal-title">Jadwal Hari Ini</div>
 
-            <div class="dash-jadwal-card">
-                <div>
-                    <div class="dash-mk">Mobile Programming</div>
-                    <div class="dash-jadwal-meta">10.00 – 12.00 &bull; KBR 2.3</div>
+            @forelse($jadwalHariIni as $jadwal)
+                <div class="dash-jadwal-card">
+                    <a href="{{ $jadwal->sudah_absen ? '#' : route('mahasiswa.presensi.camera', ['jadwal_id' => $jadwal->id]) }}" style="text-decoration: none; flex: 1; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="dash-mk">{{ $jadwal->mataKuliah->nama_mk ?? 'Mata Kuliah' }}</div>
+                            <div class="dash-jadwal-meta">{{ substr($jadwal->jam_mulai, 0, 5) }} – {{ substr($jadwal->jam_selesai, 0, 5) }} &bull; {{ $jadwal->ruangan }}</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            @if($jadwal->sudah_absen)
+                                <span class="dash-pill hadir">Hadir</span>
+                            @else
+                                <span class="dash-pill belum">Belum</span>
+                            @endif
+                        </div>
+                    </a>
+                    @if($jadwal->sudah_absen && $jadwal->foto_wajah)
+                        <button onclick="showPhotoModal('{{ asset('storage/' . $jadwal->foto_wajah) }}', '{{ $jadwal->mataKuliah->nama_mk ?? 'Mata Kuliah' }}')" style="margin-left: 12px; padding: 8px 10px; background: #E6F4EA; border-radius: 10px; border: none; font-size: 16px; color: #1B5E35; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.2s;">
+                            <i class="fa-solid fa-image"></i>
+                        </button>
+                    @endif
                 </div>
-                <span class="dash-pill belum">Belum</span>
-            </div>
-
-            <div class="dash-jadwal-card">
-                <div>
-                    <div class="dash-mk">Web Programming</div>
-                    <div class="dash-jadwal-meta">09.30 – 11.30 &bull; KBR 2.3</div>
-                </div>
-                <span class="dash-pill hadir">Hadir</span>
-            </div>
+            @empty
+                <div style="text-align:center; color:#fff; font-size:13px; margin-top:20px;">Tidak ada jadwal hari ini.</div>
+            @endforelse
 
             <div style="height: 100px;"></div>{{-- spacer above bottom bar --}}
         </div>
@@ -685,6 +702,17 @@
             <a href="{{ route('mahasiswa.presensi.camera') }}" class="h-fab">
                 <i class="fa-solid fa-camera"></i>
             </a>
+        </div>
+    </div>
+
+    {{-- Photo Preview Modal --}}
+    <div class="h-modal-overlay" id="photoModal" style="display:none; z-index: 50;">
+        <div class="h-modal-card" style="padding:0; background:transparent; box-shadow:none; align-items:center; display:flex; flex-direction:column;">
+            <div style="background:#fff; border-radius: 16px; padding: 20px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div style="font-weight: 800; font-size: 17px; margin-bottom: 16px; color: #1B5E35;" id="photoModalTitle">Hasil Presensi</div>
+                <img id="photoModalImg" src="" style="width:100%; border-radius: 12px; border: 4px solid #D1FAE5; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" alt="Presensi Photo">
+                <button onclick="document.getElementById('photoModal').style.display='none'" style="margin-top: 20px; width: 100%; background: #1B5E35; color: #fff; font-weight: 800; padding: 14px; border: none; border-radius: 12px; cursor: pointer; transition: transform 0.1s;">Tutup Preview</button>
+            </div>
         </div>
     </div>
 
@@ -699,23 +727,65 @@
                   .setView([-7.412, 109.25], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
                 { maxZoom: 19 }).addTo(map);
+
+    // Titik Acuan Kampus STMIK Widya Utama (Berkoh)
+    const campusLatLng = [-7.442651, 109.260515];
+    const campusIcon = L.divIcon({
+        html: '<div style="width:24px;height:24px;background:#DC2626;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:bold;">K</div>',
+        className: '', iconSize: [24,24], iconAnchor: [12,12]
+    });
+    L.marker(campusLatLng, {icon: campusIcon}).addTo(map).bindPopup('<b>STMIK Widya Utama</b><br>Jl. Sunan Kalijaga, Berkoh');
+
     let _marker;
+    let _polyline;
+
     if ('geolocation' in navigator) {
         navigator.geolocation.watchPosition(pos => {
             const { latitude: lat, longitude: lng } = pos.coords;
-            map.setView([lat, lng], 17);
-            const icon = L.divIcon({
+            const userLatLng = [lat, lng];
+            
+            // Marker User
+            const userIcon = L.divIcon({
                 html: '<div style="width:18px;height:18px;background:#1D4ED8;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(0,0,0,.3)"></div>',
                 className: '', iconSize: [18,18], iconAnchor: [9,9]
             });
-            if (!_marker) _marker = L.marker([lat,lng],{icon}).addTo(map);
-            else _marker.setLatLng([lat,lng]);
+
+            if (!_marker) {
+                _marker = L.marker(userLatLng, {icon: userIcon}).addTo(map);
+            } else {
+                _marker.setLatLng(userLatLng);
+            }
+
+            // Line Connection User ke Kampus
+            if (!_polyline) {
+                _polyline = L.polyline([userLatLng, campusLatLng], {
+                    color: '#1B5E35',
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '10, 10',
+                    lineJoin: 'round'
+                }).addTo(map);
+            } else {
+                _polyline.setLatLngs([userLatLng, campusLatLng]);
+            }
+            
+            // Fit bounds agar kedua titik (user & kampus) terlihat di map
+            const bounds = L.latLngBounds([userLatLng, campusLatLng]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+
         }, () => {}, { enableHighAccuracy: true, maximumAge: 0 });
     }
 
     // ── Dashboard open/close ──
     function openDashboard()  { document.getElementById('dashOverlay').classList.add('open'); }
     function closeDashboard() { document.getElementById('dashOverlay').classList.remove('open'); }
+
+    // ── Photo Modal ──
+    function showPhotoModal(url, title) {
+        document.getElementById('photoModalImg').src = url;
+        document.getElementById('photoModalTitle').innerText = title;
+        document.getElementById('photoModal').style.display = 'flex';
+    }
 
     // Close welcome after 500ms on first load (or let user dismiss)
     // document.getElementById('welcomeModal') stays open until user taps Dismiss

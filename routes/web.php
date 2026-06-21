@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile',             [MahasiswaWebController::class, 'profile'])->name('mahasiswa.profile');
     Route::get('/history',             [MahasiswaWebController::class, 'history'])->name('mahasiswa.history');
     Route::get('/presensi/camera',     [MahasiswaWebController::class, 'camera'])->name('mahasiswa.presensi.camera');
+    Route::post('/presensi/submit',    [MahasiswaWebController::class, 'submitPresensi'])->name('mahasiswa.presensi.submit');
     Route::post('/keluar',             [MahasiswaWebController::class, 'logout'])->name('mahasiswa.logout');
 });
 
