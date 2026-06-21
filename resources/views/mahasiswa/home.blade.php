@@ -789,5 +789,88 @@
 
     // Close welcome after 500ms on first load (or let user dismiss)
     // document.getElementById('welcomeModal') stays open until user taps Dismiss
+
+    // ── PUSH NOTIFICATION & COUNTDOWN LOGIC ──
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    function subscribeUserToPush() {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                console.log('Service Worker Registered');
+                reg.pushManager.getSubscription().then(function(sub) {
+                    if (sub === null) {
+                        reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array('{{ env("VAPID_PUBLIC_KEY") }}')
+                        }).then(function(newSub) {
+                            // Send subscription to backend
+                            fetch('{{ route("mahasiswa.push.subscribe") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify(newSub)
+                            });
+                        }).catch(function(e) {
+                            if (Notification.permission === 'denied') {
+                                console.warn('Permission for notifications was denied');
+                            } else {
+                                console.error('Unable to subscribe to push', e);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+    }
+
+    // Request permission on load
+    if (Notification.permission === 'default') {
+        Notification.requestPermission().then(function(permission) {
+            if (permission === 'granted') {
+                subscribeUserToPush();
+            }
+        });
+    } else if (Notification.permission === 'granted') {
+        subscribeUserToPush();
+    }
+
+    // ── 15 MINUTE REMINDER POPUP ──
+    @if($nextJadwal)
+        const jamMulai = "{{ $nextJadwal->jam_mulai }}"; // e.g. "08:00:00"
+        
+        function checkReminder() {
+            const now = new Date();
+            const [hours, minutes, seconds] = jamMulai.split(':');
+            
+            const scheduleTime = new Date();
+            scheduleTime.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds || 0), 0);
+            
+            const diffMs = scheduleTime - now;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            // Tepat 15 menit sebelum kelas
+            if (diffMins === 15) {
+                // Munculkan popup jika belum muncul
+                if (!document.getElementById('dashOverlay').classList.contains('open')) {
+                    openDashboard();
+                }
+            }
+        }
+        
+        // Cek setiap 30 detik
+        setInterval(checkReminder, 30000);
+        checkReminder(); // initial check
+    @endif
 </script>
 @endpush

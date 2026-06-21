@@ -323,32 +323,8 @@
     \Carbon\Carbon::setLocale('id');
     $todayLabel = now()->translatedFormat('l, d F Y');
 
-    $notifikasiList = $notifikasiList ?? [
-        [
-            'id'                => 1,
-            'judul'             => 'Pengingat Presensi',
-            'waktu'             => 'Baru saja',
-            'pesan'             => 'Kelas Mobile Programming dimulai <span class="nt-highlight">15 Menit</span> lagi',
-            'is_reminder_aktif' => true,
-            'is_unread'         => true,
-        ],
-        [
-            'id'                => 2,
-            'judul'             => 'Pengingat Presensi',
-            'waktu'             => '13.00',
-            'pesan'             => 'Presensi Berhasil!<br>Mobile Programming tercatat hadir.',
-            'is_reminder_aktif' => false,
-            'is_unread'         => false,
-        ],
-        [
-            'id'                => 3,
-            'judul'             => 'Pengingat Presensi',
-            'waktu'             => '10.00',
-            'pesan'             => 'Presensi Berhasil!<br>Web Programming tercatat hadir.',
-            'is_reminder_aktif' => false,
-            'is_unread'         => false,
-        ],
-    ];
+    // Mengambil notifikasi dari database
+    $notifikasiList = Auth::user()->notifications;
 @endphp
 
 <div class="nt-wrap" id="ntWrap">
@@ -382,12 +358,16 @@
     {{-- ── NOTIFICATION LIST ── --}}
     <div class="nt-body" id="ntBody">
         @forelse ($notifikasiList as $notif)
-            <div class="nt-card {{ $notif['is_unread'] ? 'unread' : '' }}"
-                 id="card-{{ $notif['id'] }}"
-                 data-id="{{ $notif['id'] }}">
+            @php
+                $data = $notif->data;
+                $isUnread = $notif->unread();
+            @endphp
+            <div class="nt-card {{ $isUnread ? 'unread' : '' }}"
+                 id="card-{{ $notif->id }}"
+                 data-id="{{ $notif->id }}">
 
                 {{-- Unread dot --}}
-                @if ($notif['is_unread'])
+                @if ($isUnread)
                     <div class="nt-unread-dot"></div>
                 @endif
 
@@ -396,21 +376,21 @@
 
                 {{-- Content --}}
                 <div class="nt-content">
-                    <div class="nt-meta"><strong>PresGo</strong> &bull; {{ $notif['waktu'] }}</div>
-                    <div class="nt-title">{{ $notif['judul'] }}</div>
-                    <div class="nt-message">{!! $notif['pesan'] !!}</div>
+                    <div class="nt-meta"><strong>PresGo</strong> &bull; {{ $data['waktu'] ?? $notif->created_at->diffForHumans() }}</div>
+                    <div class="nt-title">{{ $data['judul'] ?? 'Notifikasi' }}</div>
+                    <div class="nt-message">{!! $data['pesan'] ?? '' !!}</div>
 
-                    @if ($notif['is_reminder_aktif'])
+                    @if (isset($data['is_reminder_aktif']) && $data['is_reminder_aktif'])
                         <div class="nt-actions">
-                            <a href="{{ route('mahasiswa.presensi.camera') }}"
+                            <a href="{{ route('mahasiswa.presensi.camera', ['jadwal_id' => $data['jadwal_id'] ?? '']) }}"
                                class="nt-btn-primary"
-                               id="btnPresensi-{{ $notif['id'] }}">
+                               id="btnPresensi-{{ $notif->id }}">
                                 Presensi Sekarang
                             </a>
                             <button type="button"
                                     class="nt-btn-secondary btn-abaikan"
-                                    data-card-id="{{ $notif['id'] }}"
-                                    id="btnAbaikan-{{ $notif['id'] }}">
+                                    data-card-id="{{ $notif->id }}"
+                                    id="btnAbaikan-{{ $notif->id }}">
                                 Abaikan
                             </button>
                         </div>
@@ -490,6 +470,14 @@
             const cardId = this.dataset.cardId;
             removeCard(cardId);
             showToast('Notifikasi diabaikan.');
+            fetch('{{ route("mahasiswa.notifikasi.read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ id: cardId })
+            });
         });
     });
 
@@ -528,6 +516,10 @@
         });
         closeDropdown();
         showToast('Semua notifikasi ditandai dibaca.');
+        fetch('{{ route("mahasiswa.notifikasi.read-all") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        });
     });
 
     /* ── Hapus semua ── */
@@ -544,6 +536,10 @@
         });
         closeDropdown();
         showToast('Semua notifikasi dihapus.');
+        fetch('{{ route("mahasiswa.notifikasi.delete-all") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        });
     });
 
     /* ──────────────────────────────────────────
@@ -557,6 +553,16 @@
                 card.classList.remove('unread');
                 const dot = card.querySelector('.nt-unread-dot');
                 if (dot) dot.remove();
+                
+                const cardId = card.dataset.id;
+                fetch('{{ route("mahasiswa.notifikasi.read") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ id: cardId })
+                });
             }
         });
     });

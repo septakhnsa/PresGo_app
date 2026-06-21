@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\PresensiBerhasilNotification;
 
 class MahasiswaWebController extends Controller
 {
@@ -250,11 +251,15 @@ class MahasiswaWebController extends Controller
         \Illuminate\Support\Facades\Storage::disk('public')->put('attendances/' . $imageName, base64_decode($photoData));
 
         $jadwalId = $request->input('jadwal_id');
+        $jadwal = null;
+        
         if (!$jadwalId) {
-            $jadwal = \App\Models\JadwalKuliah::first();
+            $jadwal = \App\Models\JadwalKuliah::with('mataKuliah')->first();
             if ($jadwal) {
                 $jadwalId = $jadwal->id;
             }
+        } else {
+            $jadwal = \App\Models\JadwalKuliah::with('mataKuliah')->find($jadwalId);
         }
 
         \App\Models\Presensi::updateOrCreate(
@@ -271,6 +276,11 @@ class MahasiswaWebController extends Controller
                 'longitude' => $request->longitude,
             ]
         );
+
+        // Kirim notifikasi realtime & background ke user
+        if ($jadwal) {
+            Auth::user()->notify(new PresensiBerhasilNotification($jadwal));
+        }
 
         return response()->json([
             'success' => true,
@@ -292,5 +302,55 @@ class MahasiswaWebController extends Controller
     public function history()
     {
         return view('mahasiswa.history');
+    }
+
+    /**
+     * Push Subscription
+     */
+    public function pushSubscribe(Request $request)
+    {
+        $request->validate([
+            'endpoint'    => 'required',
+            'keys.auth'   => 'required',
+            'keys.p256dh' => 'required'
+        ]);
+        $endpoint = $request->endpoint;
+        $token = $request->keys['auth'];
+        $key = $request->keys['p256dh'];
+        $user = Auth::user();
+        $user->updatePushSubscription($endpoint, $key, $token);
+        
+        return response()->json(['success' => true], 200);
+    }
+
+    /**
+     * Mark Notification as Read
+     */
+    public function markAsRead(Request $request)
+    {
+        $id = $request->input('id');
+        $notification = Auth::user()->notifications()->where('id', $id)->first();
+        if ($notification) {
+            $notification->markAsRead();
+        }
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Mark All Notifications as Read
+     */
+    public function markAllAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Delete All Notifications
+     */
+    public function deleteAllNotifications()
+    {
+        Auth::user()->notifications()->delete();
+        return response()->json(['success' => true]);
     }
 }
