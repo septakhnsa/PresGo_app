@@ -366,7 +366,7 @@
                     <div class="nt-meta"><strong>PresGo</strong> &bull; Baru saja</div>
                     <div class="nt-title">Pengingat Presensi</div>
                     <div class="nt-message">
-                        Kelas <span class="nt-highlight">{{ $notifJadwal['mata_kuliah'] }}</span> akan segera dimulai! Jangan lupa melakukan presensi di ruangan {{ $notifJadwal['ruangan'] }}.
+                        Kelas <span class="nt-highlight">{{ $notifJadwal['mata_kuliah'] }}</span> bersama dosen <span class="nt-highlight">{{ $notifJadwal['dosen'] }}</span> akan segera dimulai! Jangan lupa melakukan presensi di ruangan {{ $notifJadwal['ruangan'] }}.
                     </div>
                     <div class="nt-actions">
                         <a href="{{ route('mahasiswa.presensi.camera', ['jadwal_id' => $notifJadwal['id']]) }}"

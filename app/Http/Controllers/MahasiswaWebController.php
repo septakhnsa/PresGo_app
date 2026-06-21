@@ -245,6 +245,7 @@ class MahasiswaWebController extends Controller
             $mappedJadwal[] = [
                 'id' => $j->id,
                 'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                'dosen' => $j->dosen ?? 'Dosen Pengampu',
                 'jam' => "{$jamMulai} – {$jamSelesai}",
                 'ruangan' => $j->ruangan,
                 'status' => $status,
@@ -345,6 +346,7 @@ class MahasiswaWebController extends Controller
                     $notifJadwal = [
                         'id' => $j->id,
                         'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                        'dosen' => $j->dosen ?? 'Dosen Pengampu',
                         'jam' => substr($j->jam_mulai, 0, 5) . ' – ' . substr($j->jam_selesai, 0, 5),
                         'ruangan' => $j->ruangan
                     ];
@@ -359,6 +361,7 @@ class MahasiswaWebController extends Controller
                             $notifJadwal = [
                                 'id' => $j->id,
                                 'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                                'dosen' => $j->dosen ?? 'Dosen Pengampu',
                                 'jam' => substr($j->jam_mulai, 0, 5) . ' – ' . substr($j->jam_selesai, 0, 5),
                                 'ruangan' => $j->ruangan
                             ];

@@ -488,19 +488,19 @@
                 <a href="{{ $jadwal['status'] === 'Hadir' ? '#' : route('mahasiswa.presensi.camera', ['jadwal_id' => $jadwal['id']]) }}" style="text-decoration: none; flex: 1; display: flex; justify-content: space-between; align-items: center; color: inherit; margin-right: 8px;">
                     <div>
                         <div class="dp-mk">{{ $jadwal['mata_kuliah'] }}</div>
-                        <div class="dp-jadwal-meta">{{ $jadwal['jam'] }} &bull; {{ $jadwal['ruangan'] }}</div>
+                        <div class="dp-jadwal-meta" style="margin-bottom: 2px;">
+                            <i class="fa-solid fa-user-tie" style="margin-right: 4px; opacity: 0.8;"></i>{{ $jadwal['dosen'] }}
+                        </div>
+                        <div class="dp-jadwal-meta">
+                            <i class="fa-regular fa-clock" style="margin-right: 4px; opacity: 0.8;"></i>{{ $jadwal['jam'] }} &bull; {{ $jadwal['ruangan'] }}
+                        </div>
                     </div>
                     <span class="dp-status-pill {{ $jadwal['status'] === 'Hadir' ? 'hadir' : 'belum' }}">
                         {{ $jadwal['status'] }}
                     </span>
                 </a>
                 @if ($jadwal['status'] === 'Hadir' && isset($jadwal['foto_wajah']) && $jadwal['foto_wajah'])
-                    <button
-                        type="button"
-                        class="dp-photo-trigger-btn"
-                        data-photo-url="{{ asset('storage/' . $jadwal['foto_wajah']) }}"
-                        data-mk-name="{{ $jadwal['mata_kuliah'] }}"
-                    >
+                    <button type="button" class="dp-photo-trigger-btn" data-photo-url="{{ asset('storage/' . $jadwal['foto_wajah']) }}" data-mk-name="{{ $jadwal['mata_kuliah'] }}" style="padding: 8px 10px; background: #E6F4EA; border-radius: 10px; border: none; font-size: 15px; color: #1B5E35; cursor: pointer; flex-shrink: 0; transition: background 0.2s; display: flex; align-items: center; justify-content: center;">
                         <i class="fa-solid fa-image"></i>
                     </button>
                 @endif
@@ -532,7 +532,7 @@
         </div>
         <div class="dp-modal-body">
             <p class="dp-modal-text">
-                Kamu memiliki jadwal kuliah <span class="dp-modal-highlight">{{ $notifJadwal['mata_kuliah'] }}</span> pada jam <span class="dp-modal-highlight">{{ $notifJadwal['jam'] }}</span> di ruangan <span class="dp-modal-highlight">{{ $notifJadwal['ruangan'] }}</span>.
+                Kamu memiliki jadwal kuliah <span class="dp-modal-highlight">{{ $notifJadwal['mata_kuliah'] }}</span> bersama dosen <span class="dp-modal-highlight">{{ $notifJadwal['dosen'] }}</span> pada jam <span class="dp-modal-highlight">{{ $notifJadwal['jam'] }}</span> di ruangan <span class="dp-modal-highlight">{{ $notifJadwal['ruangan'] }}</span>.
             </p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <a href="{{ route('mahasiswa.presensi.camera', ['jadwal_id' => $notifJadwal['id']]) }}" class="dp-modal-btn-confirm">
