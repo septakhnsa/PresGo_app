@@ -24,6 +24,13 @@
         <div class="otp-scroll">
             <div class="otp-body">
 
+                @if (session('success'))
+                    <div class="otp-alert" style="background: #D1FAE5; color: #065F46;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                @endif
+
                 @if ($errors->any())
                     <div class="otp-alert otp-alert-error">
                         <i class="fa-solid fa-circle-exclamation"></i>
@@ -42,20 +49,23 @@
                     @csrf
 
                     <div class="otp-row">
-                        <input type="text" name="otp_1" maxlength="1" inputmode="numeric" class="otp-box" autofocus>
-                        <input type="text" name="otp_2" maxlength="1" inputmode="numeric" class="otp-box">
-                        <input type="text" name="otp_3" maxlength="1" inputmode="numeric" class="otp-box">
-                        <input type="text" name="otp_4" maxlength="1" inputmode="numeric" class="otp-box">
-                        <input type="text" name="otp_5" maxlength="1" inputmode="numeric" class="otp-box">
+                        <input type="text" name="otp_1" maxlength="1" inputmode="numeric" class="otp-box" autofocus required>
+                        <input type="text" name="otp_2" maxlength="1" inputmode="numeric" class="otp-box" required>
+                        <input type="text" name="otp_3" maxlength="1" inputmode="numeric" class="otp-box" required>
+                        <input type="text" name="otp_4" maxlength="1" inputmode="numeric" class="otp-box" required>
+                        <input type="text" name="otp_5" maxlength="1" inputmode="numeric" class="otp-box" required>
                     </div>
 
-                    <button type="submit" class="otp-btn-submit">Kirim Kode OTP</button>
+                    <button type="submit" class="otp-btn-submit">Verifikasi Kode OTP</button>
                 </form>
 
-                <p class="otp-resend-text">
-                    Belum terima kode?
-                    <a href="{{ route('mahasiswa.otp.resend') }}" class="otp-resend-link">Kirim ulang</a>
-                </p>
+                <form action="{{ route('mahasiswa.otp.resend') }}" method="POST" style="margin-top: 15px;">
+                    @csrf
+                    <p class="otp-resend-text" style="margin-top: 0;">
+                        Belum terima kode?
+                        <button type="submit" class="otp-resend-link" style="background:none; border:none; padding:0; cursor:pointer; font-family:inherit; font-size:inherit;">Kirim ulang</button>
+                    </p>
+                </form>
 
             </div>
         </div>
