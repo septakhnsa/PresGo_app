@@ -318,13 +318,26 @@
                     <img src="{{ $avatarUrl }}" class="h-modal-avatar" alt="Foto Profil">
                     <div class="h-modal-nim">{{ $userNim }}</div>
                     <div class="h-modal-name">{{ $userName }}</div>
-                    <div class="h-modal-desc">
-                        Mahasiswa Semester 6 · Program Studi Teknik Informatika<br>
-                        STMIK Widya Utama
-                    </div>
-                    <button class="h-modal-dismiss" onclick="document.getElementById('welcomeModal').style.display='none'">
-                        Dismiss
-                    </button>
+                    @if(Auth::user()->nim === null)
+                        <div class="h-modal-desc" style="color: #DC2626; font-weight: 700; margin-top: 10px; background: #FEE2E2; padding: 10px; border-radius: 8px;">
+                            <i class="fa-solid fa-clock-rotate-left" style="margin-right:4px;"></i> PENDING VERIFIKASI<br>
+                            <span style="font-size: 11.5px; font-weight: 500; color: #991B1B;">Data Anda telah terdaftar dan diterima. Harap menunggu admin memverifikasi dan menginputkan NIM Anda agar bisa melanjutkan.</span>
+                        </div>
+                        <form action="{{ route('mahasiswa.logout') }}" method="POST" style="margin-top: 18px;">
+                            @csrf
+                            <button type="submit" class="h-modal-dismiss" style="margin-top: 0;">
+                                Saya Mengerti
+                            </button>
+                        </form>
+                    @else
+                        <div class="h-modal-desc">
+                            Mahasiswa Semester 6 · Program Studi Teknik Informatika<br>
+                            STMIK Widya Utama
+                        </div>
+                        <button class="h-modal-dismiss" onclick="document.getElementById('welcomeModal').style.display='none'">
+                            Dismiss
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
