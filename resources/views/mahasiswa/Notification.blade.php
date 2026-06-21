@@ -357,6 +357,30 @@
 
     {{-- ── NOTIFICATION LIST ── --}}
     <div class="nt-body" id="ntBody">
+        {{-- Dynamic 15-Minute Reminder Notification --}}
+        @if(isset($notifJadwal) && $notifJadwal)
+            <div class="nt-card unread" id="card-reminder-{{ $notifJadwal['id'] }}" data-id="reminder-{{ $notifJadwal['id'] }}">
+                <div class="nt-unread-dot"></div>
+                <div class="nt-icon" style="background: #FFD54F; color: #1B5E35;"><i class="fa-solid fa-bell"></i></div>
+                <div class="nt-content">
+                    <div class="nt-meta"><strong>PresGo</strong> &bull; Baru saja</div>
+                    <div class="nt-title">Pengingat Presensi</div>
+                    <div class="nt-message">
+                        Kelas <span class="nt-highlight">{{ $notifJadwal['mata_kuliah'] }}</span> akan segera dimulai! Jangan lupa melakukan presensi di ruangan {{ $notifJadwal['ruangan'] }}.
+                    </div>
+                    <div class="nt-actions">
+                        <a href="{{ route('mahasiswa.presensi.camera', ['jadwal_id' => $notifJadwal['id']]) }}"
+                           class="nt-btn-primary">
+                            Presensi Sekarang
+                        </a>
+                        <button type="button" class="nt-btn-secondary btn-abaikan" data-card-id="reminder-{{ $notifJadwal['id'] }}">
+                            Abaikan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @forelse ($notifikasiList as $notif)
             @php
                 $data = $notif->data;
@@ -398,10 +422,12 @@
                 </div>
             </div>
         @empty
-            <div class="nt-empty" id="ntEmpty">
-                <i class="fa-regular fa-bell-slash"></i>
-                <p>Tidak ada notifikasi saat ini.</p>
-            </div>
+            @if(!isset($notifJadwal) || !$notifJadwal)
+                <div class="nt-empty" id="ntEmpty">
+                    <i class="fa-regular fa-bell-slash"></i>
+                    <p>Tidak ada notifikasi saat ini.</p>
+                </div>
+            @endif
         @endforelse
 
         {{-- spacer agar konten tidak ketutup FAB --}}

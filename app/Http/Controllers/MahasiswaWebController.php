@@ -318,7 +318,58 @@ class MahasiswaWebController extends Controller
                 ->delete();
         }
         
-        return view('mahasiswa.Notification', compact('user'));
+        // Cek apakah ada jadwal yang sedang/akan masuk dalam rentang 15 menit
+        \Carbon\Carbon::setLocale('id');
+        $hariIni = now()->translatedFormat('l');
+        $jadwalHariIni = $user->jadwals()->where('hari', $hariIni)->with('mataKuliah')->get();
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', $hariIni)->with('mataKuliah')->get();
+        }
+        $isFallbackMonday = false;
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', 'Senin')->with('mataKuliah')->get();
+            $isFallbackMonday = true;
+        }
+
+        $notifJadwal = null;
+        $now = now();
+
+        foreach ($jadwalHariIni as $j) {
+            $absen = \App\Models\Presensi::where('user_id', $user->id)
+                ->where('jadwal_id', $j->id)
+                ->where('tanggal', now()->toDateString())
+                ->first();
+            
+            if (!$absen) { // Belum absen
+                if ($isFallbackMonday) {
+                    $notifJadwal = [
+                        'id' => $j->id,
+                        'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                        'jam' => substr($j->jam_mulai, 0, 5) . ' – ' . substr($j->jam_selesai, 0, 5),
+                        'ruangan' => $j->ruangan
+                    ];
+                    break;
+                } else {
+                    try {
+                        $jamMulaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $j->jam_mulai);
+                        $jamSelesaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $j->jam_selesai);
+                        $reminderStart = $jamMulaiCarbon->copy()->subMinutes(15);
+                        
+                        if ($now->between($reminderStart, $jamSelesaiCarbon)) {
+                            $notifJadwal = [
+                                'id' => $j->id,
+                                'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                                'jam' => substr($j->jam_mulai, 0, 5) . ' – ' . substr($j->jam_selesai, 0, 5),
+                                'ruangan' => $j->ruangan
+                            ];
+                            break;
+                        }
+                    } catch (\Exception $e) {}
+                }
+            }
+        }
+
+        return view('mahasiswa.Notification', compact('user', 'notifJadwal'));
     }
 
     /**

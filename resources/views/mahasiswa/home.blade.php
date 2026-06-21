@@ -454,33 +454,5 @@
     } else if (Notification.permission === 'granted') {
         subscribeUserToPush();
     }
-
-    // ── 15 MINUTE REMINDER POPUP ──
-    @if($nextJadwal)
-        const jamMulai = "{{ $nextJadwal->jam_mulai }}"; // e.g. "08:00:00"
-        
-        function checkReminder() {
-            const now = new Date();
-            const [hours, minutes, seconds] = jamMulai.split(':');
-            
-            const scheduleTime = new Date();
-            scheduleTime.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds || 0), 0);
-            
-            const diffMs = scheduleTime - now;
-            const diffMins = Math.floor(diffMs / 60000);
-            
-            // Tepat 15 menit sebelum kelas
-            if (diffMins === 15) {
-                // Munculkan popup jika belum muncul
-                if (!document.getElementById('dashOverlay').classList.contains('open')) {
-                    openDashboard();
-                }
-            }
-        }
-        
-        // Cek setiap 30 detik
-        setInterval(checkReminder, 30000);
-        checkReminder(); // initial check
-    @endif
 </script>
 @endpush
