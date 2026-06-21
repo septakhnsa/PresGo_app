@@ -258,17 +258,19 @@
     <div class="dp-body">
 
         {{-- Notification pill --}}
-        <div class="dp-notif-pill" id="dpNotifPill">
+        @if (isset($notifJadwal) && $notifJadwal)
+        <div class="dp-notif-pill" id="dpNotifPill" style="cursor: pointer;" onclick="openReminderModal()">
             <div class="dp-notif-icon"><i class="fa-solid fa-bell"></i></div>
             <div class="dp-notif-text">
                 <strong>PresGo - Baru saja</strong>
-                &nbsp;Pengingat Presensi | Mobile Programming
+                &nbsp;Pengingat Presensi | {{ $notifJadwal['mata_kuliah'] }}
                 <span class="dp-notif-red">15 Menit lagi &rsaquo;</span>
             </div>
-            <button class="dp-notif-close" onclick="this.closest('#dpNotifPill').style.display='none'">
+            <button class="dp-notif-close" onclick="event.stopPropagation(); document.getElementById('dpNotifPill').style.display='none'">
                 <i class="fa-regular fa-circle-xmark"></i>
             </button>
         </div>
+        @endif
 
         {{-- Rekap Kehadiran --}}
         <div class="dp-rekap">
@@ -315,13 +317,53 @@
     </div>
 
 </div>
+
+<!-- Modal Pengingat Presensi -->
+@if (isset($notifJadwal) && $notifJadwal)
+<div id="reminderModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-[30px] border-4 border-[#14532D] shadow-[-8px_8px_0_0_#14532D] w-full max-w-sm overflow-hidden flex flex-col">
+        <div class="bg-[#14532D] p-6 text-center relative">
+            <div class="w-14 h-14 bg-[#FFD54F] rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-[#14532D] shadow-[-2px_2px_0_0_#000]">
+                <i class="fa-solid fa-bell text-[#14532D] text-xl animate-bounce"></i>
+            </div>
+            <h3 class="text-white font-black text-lg">Pengingat Presensi</h3>
+            <p class="text-[#B9CDBD] text-xs font-bold mt-1">Kelas akan segera dimulai!</p>
+        </div>
+        <div class="p-6 text-center">
+            <p class="text-gray-700 font-bold text-sm leading-relaxed mb-6">
+                Kamu memiliki jadwal kuliah <span class="text-[#14532D] font-black">{{ $notifJadwal['mata_kuliah'] }}</span> pada jam <span class="text-[#14532D] font-black">{{ $notifJadwal['jam'] }}</span> di ruangan <span class="text-[#14532D] font-black">{{ $notifJadwal['ruangan'] }}</span>.
+            </p>
+            <div class="flex flex-col gap-3">
+                <a href="{{ route('mahasiswa.presensi.camera', ['jadwal_id' => $notifJadwal['id']]) }}" 
+                   class="bg-[#1B5E35] text-[#FFD54F] py-3 rounded-xl font-black text-sm border-2 border-[#1B5E35] shadow-[-4px_4px_0_0_#000] text-center hover:bg-[#14532D] transition-all transform active:translate-y-1 active:shadow-[0_0_0_0_#000] block">
+                    Presensi Sekarang
+                </a>
+                <button onclick="closeReminderModal()" 
+                        class="bg-gray-100 text-gray-700 py-3 rounded-xl font-black text-sm border-2 border-gray-300 hover:bg-gray-200 transition-colors">
+                    Abaikan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 @endsection
 
-@push('scripts')
 <script>
-    // Close notif pill
-    document.querySelector('.dp-notif-close')?.addEventListener('click', function () {
-        document.getElementById('dpNotifPill').style.display = 'none';
-    });
+    function openReminderModal() {
+        const modal = document.getElementById('reminderModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.setProperty('display', 'flex', 'important');
+        }
+    }
+
+    function closeReminderModal() {
+        const modal = document.getElementById('reminderModal');
+        if (modal) {
+            modal.style.setProperty('display', 'none', 'important');
+        }
+    }
 </script>
 @endpush

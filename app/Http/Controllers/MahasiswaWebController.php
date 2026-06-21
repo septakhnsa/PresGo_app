@@ -209,7 +209,96 @@ class MahasiswaWebController extends Controller
     public function dashboardPresensi()
     {
         $user = Auth::user();
-        return view('mahasiswa.dashboard-presensi', compact('user'));
+        
+        \Carbon\Carbon::setLocale('id');
+        $hariIni = now()->translatedFormat('l'); // e.g. "Senin", "Selasa", dll.
+
+        // 1. Ambil jadwal hari ini
+        $jadwalHariIni = $user->jadwals()->where('hari', $hariIni)->with('mataKuliah')->get();
+        
+        // Mode Demo: Jika jadwal personal kosong (misal akun baru), ambil semua jadwal global hari ini
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', $hariIni)->with('mataKuliah')->get();
+        }
+
+        // Mode Demo Lanjutan: Jika hari ini memang libur (Misal Sabtu/Minggu), selalu tampilkan hari Senin
+        $isFallbackMonday = false;
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', 'Senin')->with('mataKuliah')->get();
+            $isFallbackMonday = true;
+        }
+
+        // 2. Map ke format array untuk tampilan di blade
+        $mappedJadwal = [];
+        foreach ($jadwalHariIni as $j) {
+            $absen = \App\Models\Presensi::where('user_id', $user->id)
+                ->where('jadwal_id', $j->id)
+                ->where('tanggal', now()->toDateString())
+                ->first();
+
+            $status = $absen ? 'Hadir' : 'Belum';
+
+            $jamMulai = substr($j->jam_mulai, 0, 5);
+            $jamSelesai = substr($j->jam_selesai, 0, 5);
+
+            $mappedJadwal[] = [
+                'id' => $j->id,
+                'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                'jam' => "{$jamMulai} – {$jamSelesai}",
+                'ruangan' => $j->ruangan,
+                'status' => $status,
+                'jam_mulai_raw' => $j->jam_mulai,
+                'jam_selesai_raw' => $j->jam_selesai,
+            ];
+        }
+
+        // 3. Hitung Rekap Kehadiran bulan ini secara dinamis dari tabel presensi
+        $totalHadir = \App\Models\Presensi::where('user_id', $user->id)
+            ->whereMonth('tanggal', now()->month)
+            ->whereYear('tanggal', now()->year)
+            ->count();
+        $totalAbsen = 0; // default 0 jika tidak ada pencatatan absen manual
+        $totalSesi = $totalHadir + $totalAbsen;
+        $kehadiranPersen = $totalSesi > 0 ? round(($totalHadir / $totalSesi) * 100) : 0;
+
+        // 4. Cek apakah ada jadwal yang sedang/akan masuk dalam rentang 15 menit
+        $notifJadwal = null;
+        $now = now();
+
+        foreach ($mappedJadwal as $mj) {
+            if ($mj['status'] === 'Belum') {
+                if ($isFallbackMonday) {
+                    // Mode Demo: Selalu tampilkan kelas pertama dari Senin yang belum absen
+                    $notifJadwal = $mj;
+                    break;
+                } else {
+                    // Mode Real-Time asli
+                    try {
+                        $jamMulaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $mj['jam_mulai_raw']);
+                        $jamSelesaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $mj['jam_selesai_raw']);
+                        
+                        // Rentang: 15 menit sebelum mulai sampai jam selesai kuliah
+                        $reminderStart = $jamMulaiCarbon->copy()->subMinutes(15);
+                        
+                        if ($now->between($reminderStart, $jamSelesaiCarbon)) {
+                            $notifJadwal = $mj;
+                            break;
+                        }
+                    } catch (\Exception $e) {
+                        // Skip jika format jam tidak sesuai
+                    }
+                }
+            }
+        }
+
+        return view('mahasiswa.dashboard-presensi', [
+            'user' => $user,
+            'jadwalHariIni' => $mappedJadwal,
+            'totalHadir' => $totalHadir,
+            'totalAbsen' => $totalAbsen,
+            'kehadiranPersen' => $kehadiranPersen,
+            'notifJadwal' => $notifJadwal
+        ]);
     }
 
     /**
@@ -218,6 +307,15 @@ class MahasiswaWebController extends Controller
     public function notifikasi()
     {
         $user = Auth::user();
+        
+        // Hapus notifikasi "Presensi Berhasil" jika data presensi aslinya sudah tidak ada di DB
+        $hasPresensi = \App\Models\Presensi::where('user_id', $user->id)->exists();
+        if (!$hasPresensi) {
+            $user->notifications()
+                ->where('type', 'App\Notifications\PresensiBerhasilNotification')
+                ->delete();
+        }
+        
         return view('mahasiswa.Notification', compact('user'));
     }
 

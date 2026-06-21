@@ -341,16 +341,11 @@
         $totalAbsen   = 0;
     }
 
-    // Jika belum ada data, tampilkan contoh dummy
-    $dummy = $presensiList->isEmpty() ? [
-        ['mk' => 'Mobile Programming', 'ruangan' => 'KBR 2.3', 'jam' => '10.00', 'tanggal' => now()->subDays(1), 'status' => 'hadir'],
-        ['mk' => 'Web Programming',    'ruangan' => 'KBR 2.3', 'jam' => '09.30', 'tanggal' => now()->subDays(1), 'status' => 'hadir'],
-        ['mk' => 'Basis Data',         'ruangan' => 'KBR 1.1', 'jam' => '13.00', 'tanggal' => now()->subDays(3), 'status' => 'absen'],
-        ['mk' => 'Pemrograman OOP',    'ruangan' => 'KBR 2.1', 'jam' => '08.00', 'tanggal' => now()->subDays(5), 'status' => 'hadir'],
-    ] : [];
+    // Jika belum ada data, tampilkan contoh dummy (diubah menjadi kosong agar tidak memunculkan data palsu)
+    $dummy = [];
 
-    $dummyHadir = collect($dummy)->where('status', 'hadir')->count();
-    $dummyAbsen = collect($dummy)->where('status', 'absen')->count();
+    $dummyHadir = 0;
+    $dummyAbsen = 0;
 
     $dispHadir = $presensiList->isEmpty() ? $dummyHadir : $totalHadir;
     $dispAbsen = $presensiList->isEmpty() ? $dummyAbsen : $totalAbsen;
