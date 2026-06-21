@@ -237,6 +237,7 @@ class MahasiswaWebController extends Controller
                 ->first();
 
             $status = $absen ? 'Hadir' : 'Belum';
+            $fotoWajah = $absen ? $absen->foto_wajah : null;
 
             $jamMulai = substr($j->jam_mulai, 0, 5);
             $jamSelesai = substr($j->jam_selesai, 0, 5);
@@ -247,6 +248,7 @@ class MahasiswaWebController extends Controller
                 'jam' => "{$jamMulai} – {$jamSelesai}",
                 'ruangan' => $j->ruangan,
                 'status' => $status,
+                'foto_wajah' => $fotoWajah,
                 'jam_mulai_raw' => $j->jam_mulai,
                 'jam_selesai_raw' => $j->jam_selesai,
             ];
