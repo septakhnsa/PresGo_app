@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\JadwalKuliah;
 use App\Models\MataKuliah;
 use App\Models\Presensi;
+use App\Models\MahasiswaJadwal;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -184,4 +185,50 @@ class AdminController extends Controller
             ], 500);
         }
     }
+    public function approveKrs($id): JsonResponse
+{
+    $krs = MahasiswaJadwal::findOrFail($id);
+
+    $krs->update([
+        'status' => 'approved'
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'KRS berhasil di-approve'
+    ]);
+}
+public function rejectKrs($id): JsonResponse
+{
+    $krs = MahasiswaJadwal::findOrFail($id);
+
+    $krs->update([
+        'status' => 'rejected'
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'KRS ditolak'
+    ]);
+}
+public function krsPending(): JsonResponse
+{
+    $data = MahasiswaJadwal::with(['user', 'jadwal.mataKuliah'])
+        ->where('status', 'pending')
+        ->get()
+        ->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'mahasiswa' => $item->user->name ?? '-',
+                'nim' => $item->user->nim ?? '-',
+                'mata_kuliah' => $item->jadwal->mataKuliah->nama_mk ?? '-',
+                'sks' => $item->jadwal->mataKuliah->sks ?? 0,
+            ];
+        });
+
+    return response()->json([
+        'success' => true,
+        'data' => $data
+    ]);
+}
 }

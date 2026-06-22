@@ -64,11 +64,16 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/presensi', [AdminWebController::class, 'presensi'])->name('admin.presensi');
     Route::post('/logout', [AdminWebController::class, 'logout'])->name('admin.logout');
 
+    // Admin Approval KRS Routes
+    Route::get('/krs/pending', [\App\Http\Controllers\AdminKrsController::class, 'index'])->name('admin.krs.pending');
+    Route::post('/krs/approve/{id}', [\App\Http\Controllers\AdminKrsController::class, 'approve'])->name('admin.krs.approve');
+
     Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard-presensi', [MahasiswaWebController::class, 'dashboardPresensi'])->name('mahasiswa.dashboard-presensi');
     Route::get('/notifikasi', [MahasiswaWebController::class, 'notifikasi'])->name('mahasiswa.notifikasi');
     Route::get('/profile', [MahasiswaWebController::class, 'profile'])->name('mahasiswa.profile');
     Route::get('/history', [MahasiswaWebController::class, 'history'])->name('mahasiswa.history');
     Route::get('/presensi/camera', [MahasiswaWebController::class, 'camera'])->name('mahasiswa.presensi.camera');
+    Route::get('/admin/krs-pending', [AdminWebController::class, 'krsPending']);
 });
 });

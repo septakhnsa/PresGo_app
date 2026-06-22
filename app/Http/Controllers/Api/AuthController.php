@@ -45,7 +45,14 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login berhasil',
             'token'   => $token,
-            'user'    => $user
+            'user'    => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'nim' => $user->nim,
+                'role' => $user->role,
+                'krs_completed' => $user->krs_completed,
+            ]
         ]);
     }
 
@@ -66,6 +73,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'mahasiswa',
             'nim' => null, // Tandai sebagai Pending
+            'krs_completed' => 0,
         ]);
 
         return response()->json([

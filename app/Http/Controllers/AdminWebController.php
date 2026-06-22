@@ -209,4 +209,13 @@ class AdminWebController extends Controller
         ];
         return $days[$dayOfWeek] ?? 'Senin';
     }
+    public function krsPending()
+{
+    $response = file_get_contents(url('/api/admin/krs/pending'));
+    $data = json_decode($response, true);
+
+    $krs = $data['data'] ?? [];
+
+    return view('admin.krs_pending', compact('krs'));
+}
 }

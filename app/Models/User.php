@@ -57,4 +57,12 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(JadwalKuliah::class, 'mahasiswa_jadwal', 'user_id', 'jadwal_id');
     }
+
+    /**
+     * KRS requests by this user.
+     */
+    public function krsRequests()
+    {
+        return $this->hasMany(KrsRequest::class, 'user_id');
+    }
 }

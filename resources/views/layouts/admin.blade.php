@@ -413,6 +413,11 @@
                             <i class="fa-solid fa-circle-check"></i> Riwayat Presensi
                         </a>
                     </li>
+                    <li class="nav-item {{ Route::is('admin.krs.pending') ? 'active' : '' }}">
+                        <a href="{{ route('admin.krs.pending') }}">
+                            <i class="fa-solid fa-list-check"></i> Approval KRS
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
@@ -453,6 +458,9 @@
                 </a>
                 <a href="{{ route('admin.presensi') }}" class="mobile-nav-link {{ Route::is('admin.presensi') ? 'active' : '' }}">
                     <i class="fa-solid fa-circle-check"></i> Presensi
+                </a>
+                <a href="{{ route('admin.krs.pending') }}" class="mobile-nav-link {{ Route::is('admin.krs.pending') ? 'active' : '' }}">
+                    <i class="fa-solid fa-list-check"></i> Approval KRS
                 </a>
             </div>
 
