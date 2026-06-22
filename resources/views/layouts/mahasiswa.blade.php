@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'PresGo')</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,27 +29,42 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(180deg, #EDE7D2 0%, #EDE7D2 100%);
+            background: #D4E0D5; /* light green desktop bg */
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 16px;
         }
 
-        /* Phone-like canvas so the page reads close to the Figma frame on desktop,
-           while staying fully fluid on real mobile browsers. */
+        /* Phone-like canvas — fills full viewport on real mobile, centered frame on desktop */
         .app-screen {
             position: relative;
             width: 100%;
-            max-width: 420px;
-            min-height: 760px;
-            background-color: var(--green);
-            border-radius: 28px;
+            height: 100vh;
+            background-color: #f1f5f9;
+            border-radius: 0;
             overflow: hidden;
-            box-shadow: 0 24px 60px rgba(20, 36, 27, 0.35);
+            box-shadow: none;
             display: flex;
             flex-direction: column;
+            /* children that use height:100% will fill this */
+        }
+
+        /* Any direct children page wrappers fill the screen */
+        .app-screen > * {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        @media (min-width: 481px) {
+            body { padding: 0; }
+            .app-screen {
+                height: 100vh;
+                max-height: none;
+            }
         }
 
         .stripe {
@@ -273,11 +289,125 @@
             padding: 6px 12px;
         }
 
+        /* On real mobile, remove frame styling — fill full viewport */
         @media (max-width: 480px) {
-            body { padding: 0; }
-            .app-screen { border-radius: 0; min-height: 100vh; box-shadow: none; }
+            body { padding: 0; align-items: stretch; }
+            .app-screen {
+                border-radius: 0;
+                height: 100vh;
+                max-height: 100vh;
+                box-shadow: none;
+            }
         }
-    </style>
+
+                /* ================= FIX GARIS ATAS ================= */
+
+        html,
+        body,
+        .app-screen,
+        .pf-wrap,
+        .pf-topbar,
+        .pf-header,
+        .pf-tabs {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .pf-topbar {
+            position: relative !important;
+            top: unset !important;
+            background: #1B5E35;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .pf-header {
+            height: 48px;
+            background: #1B5E35;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+
+            padding: 0 20px;
+
+            margin: 0;
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .pf-header::before,
+        .pf-header::after,
+        .pf-tabs::before,
+        .pf-tabs::after {
+            display: none !important;
+            content: none !important;
+        }
+
+        .pf-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+
+            background: #1B5E35;
+
+            margin: 0;
+            padding: 0 20px;
+
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .pf-tab {
+            position: relative;
+            flex: 1;
+            text-align: center;
+            padding: 10px 0 14px;
+
+            color: #a3c4b0;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+
+            border: none !important;
+        }
+
+        .pf-tab.active {
+            color: #fff;
+        }
+
+        .pf-tab.active::after {
+            content: "";
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            height: 3px;
+            background: #FFD54F;
+        }
+
+        /* Hilangkan garis render Chrome */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hilangkan garis yang sering muncul pada mode inspect */
+        .app-screen > * {
+            overflow: visible !important;
+        }
+
+        /* Hilangkan garis 1px akibat anti-aliasing */
+        .pf-header {
+            margin-bottom: -1px;
+        }
+
+        .pf-tabs {
+            margin-top: -1px;
+        }
+            </style>
 
     @stack('styles')
 </head>

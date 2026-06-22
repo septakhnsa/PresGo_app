@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\PresensiBerhasilNotification;
 
 class MahasiswaWebController extends Controller
 {
@@ -14,9 +15,13 @@ class MahasiswaWebController extends Controller
      */
     public function splash()
     {
-        // If a mahasiswa is already logged in, skip straight to their home.
-        if (Auth::check() && Auth::user()->role === 'mahasiswa') {
-            return redirect()->route('mahasiswa.home');
+        if (Auth::check()) {
+            if (Auth::user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            if (Auth::user()->role === 'mahasiswa') {
+                return redirect()->route('mahasiswa.home');
+            }
         }
 
         return view('mahasiswa.splash');
@@ -27,8 +32,13 @@ class MahasiswaWebController extends Controller
      */
     public function showLoginForm()
     {
-        if (Auth::check() && Auth::user()->role === 'mahasiswa') {
-            return redirect()->route('mahasiswa.home');
+        if (Auth::check()) {
+            if (Auth::user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            if (Auth::user()->role === 'mahasiswa') {
+                return redirect()->route('mahasiswa.home');
+            }
         }
 
         // Prefill NIM/email if previously remembered via "Ingat NIM" checkbox.
@@ -38,7 +48,7 @@ class MahasiswaWebController extends Controller
     }
 
     /**
-     * Handle Login (NIM or Email + Password)
+     * Handle Login (NIM atau Email + Password) — untuk role mahasiswa & admin
      */
     public function login(Request $request)
     {
@@ -60,14 +70,20 @@ class MahasiswaWebController extends Controller
                 ->withInput($request->only('login'));
         }
 
-        if ($user->role !== 'mahasiswa') {
-            return back()
-                ->withErrors(['login' => 'Akun ini bukan akun mahasiswa. Silakan gunakan halaman login admin.'])
-                ->withInput($request->only('login'));
-        }
-
         Auth::login($user, $request->boolean('ingat_nim'));
         $request->session()->regenerate();
+
+        // Admin langsung diarahkan ke dashboard admin
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->role !== 'mahasiswa') {
+            Auth::logout();
+            return back()
+                ->withErrors(['login' => 'Akun ini tidak memiliki akses ke halaman ini.'])
+                ->withInput($request->only('login'));
+        }
 
         $response = redirect()->route('mahasiswa.home');
 
@@ -107,7 +123,7 @@ class MahasiswaWebController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ], [
             'name.required'     => 'Nama lengkap wajib diisi.',
             'email.required'    => 'Email wajib diisi.',
@@ -130,12 +146,49 @@ class MahasiswaWebController extends Controller
 
     /**
      * Simple placeholder home page after login.
-     * (Not part of the supplied Figma frames — added so the login flow
-     * has somewhere to land. Replace with the real student dashboard later.)
      */
     public function home()
     {
-        return view('mahasiswa.home');
+        \Carbon\Carbon::setLocale('id');
+        $hariIni = now()->translatedFormat('l');
+        $user = Auth::user();
+
+        $jadwalHariIni = $user->jadwals()->where('hari', $hariIni)->with('mataKuliah')->get();
+        
+        // Mode Demo: Jika jadwal personal kosong (misal akun baru), ambil semua jadwal global hari ini
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', $hariIni)->with('mataKuliah')->get();
+        }
+
+        // Mode Demo Lanjutan: Jika hari ini memang libur (Misal Minggu), selalu tampilkan hari Senin
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', 'Senin')->with('mataKuliah')->get();
+        }
+
+        $totalJadwal = $jadwalHariIni->count();
+        $totalAbsen = 0;
+        $nextJadwal = null;
+
+        foreach ($jadwalHariIni as $jadwal) {
+            $absen = \App\Models\Presensi::where('user_id', $user->id)
+                        ->where('jadwal_id', $jadwal->id)
+                        ->where('tanggal', now()->toDateString())
+                        ->first();
+            
+            if ($absen) {
+                $jadwal->sudah_absen = true;
+                $jadwal->foto_wajah = $absen->foto_wajah;
+                $totalAbsen++;
+            } else {
+                $jadwal->sudah_absen = false;
+                $jadwal->foto_wajah = null;
+                if (!$nextJadwal) {
+                    $nextJadwal = $jadwal;
+                }
+            }
+        }
+
+        return view('mahasiswa.home', compact('jadwalHariIni', 'totalJadwal', 'totalAbsen', 'nextJadwal'));
     }
 
     /**
@@ -148,5 +201,310 @@ class MahasiswaWebController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('splash');
+    }
+
+    /**
+     * Dashboard Presensi (Rekap)
+     */
+    public function dashboardPresensi()
+    {
+        $user = Auth::user();
+        
+        \Carbon\Carbon::setLocale('id');
+        $hariIni = now()->translatedFormat('l'); // e.g. "Senin", "Selasa", dll.
+
+        // 1. Ambil jadwal hari ini
+        $jadwalHariIni = $user->jadwals()->where('hari', $hariIni)->with('mataKuliah')->get();
+        
+        // Mode Demo: Jika jadwal personal kosong (misal akun baru), ambil semua jadwal global hari ini
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', $hariIni)->with('mataKuliah')->get();
+        }
+
+        // Mode Demo Lanjutan: Jika hari ini memang libur (Misal Sabtu/Minggu), selalu tampilkan hari Senin
+        $isFallbackMonday = false;
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', 'Senin')->with('mataKuliah')->get();
+            $isFallbackMonday = true;
+        }
+
+        // 2. Map ke format array untuk tampilan di blade
+        $mappedJadwal = [];
+        foreach ($jadwalHariIni as $j) {
+            $absen = \App\Models\Presensi::where('user_id', $user->id)
+                ->where('jadwal_id', $j->id)
+                ->where('tanggal', now()->toDateString())
+                ->first();
+
+            $status = $absen ? 'Hadir' : 'Belum';
+            $fotoWajah = $absen ? $absen->foto_wajah : null;
+
+            $jamMulai = substr($j->jam_mulai, 0, 5);
+            $jamSelesai = substr($j->jam_selesai, 0, 5);
+
+            $mappedJadwal[] = [
+                'id' => $j->id,
+                'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                'dosen' => $j->dosen ?? 'Dosen Pengampu',
+                'jam' => "{$jamMulai} – {$jamSelesai}",
+                'ruangan' => $j->ruangan,
+                'status' => $status,
+                'foto_wajah' => $fotoWajah,
+                'jam_mulai_raw' => $j->jam_mulai,
+                'jam_selesai_raw' => $j->jam_selesai,
+            ];
+        }
+
+        // 3. Hitung Rekap Kehadiran bulan ini secara dinamis dari tabel presensi
+        $totalHadir = \App\Models\Presensi::where('user_id', $user->id)
+            ->whereMonth('tanggal', now()->month)
+            ->whereYear('tanggal', now()->year)
+            ->count();
+        $totalAbsen = 0; // default 0 jika tidak ada pencatatan absen manual
+        $totalSesi = $totalHadir + $totalAbsen;
+        $kehadiranPersen = $totalSesi > 0 ? round(($totalHadir / $totalSesi) * 100) : 0;
+
+        // 4. Cek apakah ada jadwal yang sedang/akan masuk dalam rentang 15 menit
+        $notifJadwal = null;
+        $now = now();
+
+        foreach ($mappedJadwal as $mj) {
+            if ($mj['status'] === 'Belum') {
+                if ($isFallbackMonday) {
+                    // Mode Demo: Selalu tampilkan kelas pertama dari Senin yang belum absen
+                    $notifJadwal = $mj;
+                    break;
+                } else {
+                    // Mode Real-Time asli
+                    try {
+                        $jamMulaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $mj['jam_mulai_raw']);
+                        $jamSelesaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $mj['jam_selesai_raw']);
+                        
+                        // Rentang: 15 menit sebelum mulai sampai jam selesai kuliah
+                        $reminderStart = $jamMulaiCarbon->copy()->subMinutes(15);
+                        
+                        if ($now->between($reminderStart, $jamSelesaiCarbon)) {
+                            $notifJadwal = $mj;
+                            break;
+                        }
+                    } catch (\Exception $e) {
+                        // Skip jika format jam tidak sesuai
+                    }
+                }
+            }
+        }
+
+        return view('mahasiswa.dashboard-presensi', [
+            'user' => $user,
+            'jadwalHariIni' => $mappedJadwal,
+            'totalHadir' => $totalHadir,
+            'totalAbsen' => $totalAbsen,
+            'kehadiranPersen' => $kehadiranPersen,
+            'notifJadwal' => $notifJadwal
+        ]);
+    }
+
+    /**
+     * Notifikasi
+     */
+    public function notifikasi()
+    {
+        $user = Auth::user();
+        
+        // Hapus notifikasi "Presensi Berhasil" jika data presensi aslinya sudah tidak ada di DB
+        $hasPresensi = \App\Models\Presensi::where('user_id', $user->id)->exists();
+        if (!$hasPresensi) {
+            $user->notifications()
+                ->where('type', 'App\Notifications\PresensiBerhasilNotification')
+                ->delete();
+        }
+        
+        // Cek apakah ada jadwal yang sedang/akan masuk dalam rentang 15 menit
+        \Carbon\Carbon::setLocale('id');
+        $hariIni = now()->translatedFormat('l');
+        $jadwalHariIni = $user->jadwals()->where('hari', $hariIni)->with('mataKuliah')->get();
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', $hariIni)->with('mataKuliah')->get();
+        }
+        $isFallbackMonday = false;
+        if ($jadwalHariIni->isEmpty()) {
+            $jadwalHariIni = \App\Models\JadwalKuliah::where('hari', 'Senin')->with('mataKuliah')->get();
+            $isFallbackMonday = true;
+        }
+
+        $notifJadwal = null;
+        $now = now();
+
+        foreach ($jadwalHariIni as $j) {
+            $absen = \App\Models\Presensi::where('user_id', $user->id)
+                ->where('jadwal_id', $j->id)
+                ->where('tanggal', now()->toDateString())
+                ->first();
+            
+            if (!$absen) { // Belum absen
+                if ($isFallbackMonday) {
+                    $notifJadwal = [
+                        'id' => $j->id,
+                        'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                        'dosen' => $j->dosen ?? 'Dosen Pengampu',
+                        'jam' => substr($j->jam_mulai, 0, 5) . ' – ' . substr($j->jam_selesai, 0, 5),
+                        'ruangan' => $j->ruangan
+                    ];
+                    break;
+                } else {
+                    try {
+                        $jamMulaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $j->jam_mulai);
+                        $jamSelesaiCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $j->jam_selesai);
+                        $reminderStart = $jamMulaiCarbon->copy()->subMinutes(15);
+                        
+                        if ($now->between($reminderStart, $jamSelesaiCarbon)) {
+                            $notifJadwal = [
+                                'id' => $j->id,
+                                'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                                'dosen' => $j->dosen ?? 'Dosen Pengampu',
+                                'jam' => substr($j->jam_mulai, 0, 5) . ' – ' . substr($j->jam_selesai, 0, 5),
+                                'ruangan' => $j->ruangan
+                            ];
+                            break;
+                        }
+                    } catch (\Exception $e) {}
+                }
+            }
+        }
+
+        return view('mahasiswa.Notification', compact('user', 'notifJadwal'));
+    }
+
+    /**
+     * Camera Presensi
+     */
+    public function camera(Request $request)
+    {
+        $jadwalId = $request->query('jadwal_id');
+        $jadwal = null;
+        if ($jadwalId) {
+            $jadwal = \App\Models\JadwalKuliah::with('mataKuliah')->find($jadwalId);
+        }
+        return view('mahasiswa.camera', compact('jadwal', 'jadwalId'));
+    }
+
+    /**
+     * Submit Presensi Web
+     */
+    public function submitPresensi(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|string', // base64
+        ]);
+
+        $photoData = $request->input('photo');
+        $photoData = str_replace('data:image/jpeg;base64,', '', $photoData);
+        $photoData = str_replace(' ', '+', $photoData);
+        $imageName = 'attendance_' . Auth::id() . '_' . time() . '.jpeg';
+        
+        \Illuminate\Support\Facades\Storage::disk('public')->put('attendances/' . $imageName, base64_decode($photoData));
+
+        $jadwalId = $request->input('jadwal_id');
+        $jadwal = null;
+        
+        if (!$jadwalId) {
+            $jadwal = \App\Models\JadwalKuliah::with('mataKuliah')->first();
+            if ($jadwal) {
+                $jadwalId = $jadwal->id;
+            }
+        } else {
+            $jadwal = \App\Models\JadwalKuliah::with('mataKuliah')->find($jadwalId);
+        }
+
+        \App\Models\Presensi::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'jadwal_id' => $jadwalId,
+                'tanggal' => now()->toDateString(),
+            ],
+            [
+                'jam_masuk' => now()->toTimeString(),
+                'status_wajah' => 'valid',
+                'foto_wajah' => 'attendances/' . $imageName,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+            ]
+        );
+
+        // Kirim notifikasi realtime & background ke user
+        if ($jadwal) {
+            Auth::user()->notify(new PresensiBerhasilNotification($jadwal));
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Presensi berhasil dicatat!',
+        ]);
+    }
+
+    /**
+     * Profile
+     */
+    public function profile()
+    {
+        return view('mahasiswa.profile');
+    }
+
+    /**
+     * History
+     */
+    public function history()
+    {
+        return view('mahasiswa.history');
+    }
+
+    /**
+     * Push Subscription
+     */
+    public function pushSubscribe(Request $request)
+    {
+        $request->validate([
+            'endpoint'    => 'required',
+            'keys.auth'   => 'required',
+            'keys.p256dh' => 'required'
+        ]);
+        $endpoint = $request->endpoint;
+        $token = $request->keys['auth'];
+        $key = $request->keys['p256dh'];
+        $user = Auth::user();
+        $user->updatePushSubscription($endpoint, $key, $token);
+        
+        return response()->json(['success' => true], 200);
+    }
+
+    /**
+     * Mark Notification as Read
+     */
+    public function markAsRead(Request $request)
+    {
+        $id = $request->input('id');
+        $notification = Auth::user()->notifications()->where('id', $id)->first();
+        if ($notification) {
+            $notification->markAsRead();
+        }
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Mark All Notifications as Read
+     */
+    public function markAllAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Delete All Notifications
+     */
+    public function deleteAllNotifications()
+    {
+        Auth::user()->notifications()->delete();
+        return response()->json(['success' => true]);
     }
 }

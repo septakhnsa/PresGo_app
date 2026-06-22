@@ -3,11 +3,21 @@
 @section('title', 'Password Diperbarui - PresGo')
 
 @section('content')
-<div class="app-screen" style="background-color: #ffffff;">
+<div class="app-screen" style="background-color: #ffffff; display: flex; justify-content: center;">
 
-    <div style="background-color: #1B5E35; height: 64px; flex-shrink: 0;"></div>
+    <div style="background-color: #1B5E35; height: 52px; width: 100%; position: absolute; top: 0; left: 0;"></div>
 
-    <div style="padding: 64px 28px 32px; flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center;">
+    <div style="
+        width: 100%;
+        max-width: 380px;
+        padding: 72px 28px 32px;
+        flex: 1;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 auto;
+    ">
 
         {{-- Icon lingkaran: checkmark sukses --}}
         <div style="
@@ -64,6 +74,10 @@
 
 @push('styles')
 <style>
+    .app-screen {
+        position: relative;
+        min-height: 100vh;
+    }
     .btn-green {
         background-color: #1B5E35;
         color: #ffffff !important;
