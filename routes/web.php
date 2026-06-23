@@ -41,18 +41,27 @@ Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name(
 Route::get('/password-verified', [AuthController::class, 'showPasswordVerified'])->name('mahasiswa.password.verified');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/beranda',             [MahasiswaWebController::class, 'home'])->name('mahasiswa.home');
-    Route::get('/dashboard-presensi', [MahasiswaWebController::class, 'dashboardPresensi'])->name('mahasiswa.dashboard-presensi');
-    Route::get('/notifikasi',          [MahasiswaWebController::class, 'notifikasi'])->name('mahasiswa.notifikasi');
-    Route::post('/notifikasi/read',    [MahasiswaWebController::class, 'markAsRead'])->name('mahasiswa.notifikasi.read');
-    Route::post('/notifikasi/read-all',[MahasiswaWebController::class, 'markAllAsRead'])->name('mahasiswa.notifikasi.read-all');
-    Route::post('/notifikasi/delete-all',[MahasiswaWebController::class, 'deleteAllNotifications'])->name('mahasiswa.notifikasi.delete-all');
-    Route::get('/profile',             [MahasiswaWebController::class, 'profile'])->name('mahasiswa.profile');
-    Route::get('/history',             [MahasiswaWebController::class, 'history'])->name('mahasiswa.history');
-    Route::get('/presensi/camera',     [MahasiswaWebController::class, 'camera'])->name('mahasiswa.presensi.camera');
-    Route::post('/presensi/submit',    [MahasiswaWebController::class, 'submitPresensi'])->name('mahasiswa.presensi.submit');
-    Route::post('/push-subscribe',     [MahasiswaWebController::class, 'pushSubscribe'])->name('mahasiswa.push.subscribe');
+    // Rute yang butuh KRS sudah komplit (krs_completed == 1)
+    Route::middleware([\App\Http\Middleware\CheckKrsCompleted::class])->group(function () {
+        Route::get('/beranda',             [MahasiswaWebController::class, 'home'])->name('mahasiswa.home');
+        Route::get('/dashboard-presensi', [MahasiswaWebController::class, 'dashboardPresensi'])->name('mahasiswa.dashboard-presensi');
+        Route::get('/notifikasi',          [MahasiswaWebController::class, 'notifikasi'])->name('mahasiswa.notifikasi');
+        Route::post('/notifikasi/read',    [MahasiswaWebController::class, 'markAsRead'])->name('mahasiswa.notifikasi.read');
+        Route::post('/notifikasi/read-all',[MahasiswaWebController::class, 'markAllAsRead'])->name('mahasiswa.notifikasi.read-all');
+        Route::post('/notifikasi/delete-all',[MahasiswaWebController::class, 'deleteAllNotifications'])->name('mahasiswa.notifikasi.delete-all');
+        Route::get('/profile',             [MahasiswaWebController::class, 'profile'])->name('mahasiswa.profile');
+        Route::get('/history',             [MahasiswaWebController::class, 'history'])->name('mahasiswa.history');
+        Route::get('/presensi/camera',     [MahasiswaWebController::class, 'camera'])->name('mahasiswa.presensi.camera');
+        Route::post('/presensi/submit',    [MahasiswaWebController::class, 'submitPresensi'])->name('mahasiswa.presensi.submit');
+        Route::post('/push-subscribe',     [MahasiswaWebController::class, 'pushSubscribe'])->name('mahasiswa.push.subscribe');
+    });
+
     Route::post('/keluar',             [MahasiswaWebController::class, 'logout'])->name('mahasiswa.logout');
+
+    // ─── KRS (Kartu Rencana Studi) ───────────────────────────────────────────
+    Route::get('/krs',         [MahasiswaWebController::class, 'krsPage'])->name('mahasiswa.krs');
+    Route::post('/krs/submit', [MahasiswaWebController::class, 'submitKrs'])->name('mahasiswa.krs.submit');
+    Route::get('/krs/poll',    [MahasiswaWebController::class, 'pollKrsStatus'])->name('mahasiswa.krs.poll');
 });
 
 // ───────────────────────────────────────────────────────────────────────────

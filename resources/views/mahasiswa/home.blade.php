@@ -236,8 +236,6 @@
         cursor: pointer;
         font-family: inherit;
         width: 100%;
-    }
-
 
 </style>
 @endpush
@@ -299,6 +297,7 @@
                 <a href="{{ route('mahasiswa.dashboard-presensi') }}" class="h-lihat-btn" style="text-decoration: none;">Lihat Absensi &rsaquo;</a>
             </div>
         </div>
+
 
         {{-- Welcome Modal --}}
         <div class="h-modal-overlay" id="welcomeModal">

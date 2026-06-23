@@ -20,6 +20,9 @@ class MahasiswaWebController extends Controller
                 return redirect()->route('admin.dashboard');
             }
             if (Auth::user()->role === 'mahasiswa') {
+                if (Auth::user()->krs_completed == 0) {
+                    return redirect()->route('mahasiswa.krs');
+                }
                 return redirect()->route('mahasiswa.home');
             }
         }
@@ -37,6 +40,9 @@ class MahasiswaWebController extends Controller
                 return redirect()->route('admin.dashboard');
             }
             if (Auth::user()->role === 'mahasiswa') {
+                if (Auth::user()->krs_completed == 0) {
+                    return redirect()->route('mahasiswa.krs');
+                }
                 return redirect()->route('mahasiswa.home');
             }
         }
@@ -85,7 +91,11 @@ class MahasiswaWebController extends Controller
                 ->withInput($request->only('login'));
         }
 
-        $response = redirect()->route('mahasiswa.home');
+        if ($user->krs_completed == 0) {
+            $response = redirect()->route('mahasiswa.krs');
+        } else {
+            $response = redirect()->route('mahasiswa.home');
+        }
 
         if ($request->boolean('ingat_nim')) {
             $response->withCookie(cookie('presgo_remembered_login', $request->login, 60 * 24 * 30));
@@ -506,5 +516,75 @@ class MahasiswaWebController extends Controller
     {
         Auth::user()->notifications()->delete();
         return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // KRS (Kartu Rencana Studi) — Mahasiswa
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Tampilkan halaman KRS mahasiswa.
+     * State ditentukan dari status krs_completed dan krs_requests user.
+     */
+    public function krsPage()
+    {
+        $user = Auth::user();
+
+        // Jika sudah approved (krs_completed == 1), redirect ke beranda
+        if ($user->krs_completed == 1) {
+            return redirect()->route('mahasiswa.home');
+        }
+
+        // Ambil semua jadwal beserta mata kuliah
+        $jadwals = \App\Models\JadwalKuliah::with('mataKuliah')->get();
+
+        // Cek apakah user sudah punya KRS pending
+        $hasPending = \App\Models\KrsRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        return view('mahasiswa.krs', compact('jadwals', 'hasPending'));
+    }
+
+    /**
+     * Submit KRS mahasiswa (simpan jadwal yang dipilih sebagai pending).
+     */
+    public function submitKrs(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'jadwal_ids'   => 'required|array|min:1',
+            'jadwal_ids.*' => 'exists:jadwal_kuliah,id',
+        ], [
+            'jadwal_ids.required' => 'Pilih minimal 1 mata kuliah.',
+            'jadwal_ids.min'      => 'Pilih minimal 1 mata kuliah.',
+        ]);
+
+        $user = Auth::user();
+
+        // Hapus KRS pending lama (jika ada) agar bisa submit ulang
+        \App\Models\KrsRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->delete();
+
+        foreach ($request->jadwal_ids as $jadwalId) {
+            \App\Models\KrsRequest::create([
+                'user_id'  => $user->id,
+                'jadwal_id' => $jadwalId,
+                'status'   => 'pending',
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Polling endpoint: cek apakah KRS user sudah di-approve (krs_completed == 1).
+     */
+    public function pollKrsStatus()
+    {
+        $user = Auth::user();
+        return response()->json([
+            'krs_completed' => (string) $user->fresh()->krs_completed,
+        ]);
     }
 }
