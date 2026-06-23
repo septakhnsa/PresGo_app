@@ -52,6 +52,7 @@ class AuthController extends Controller
                 'nim' => $user->nim,
                 'role' => $user->role,
                 'krs_completed' => $user->krs_completed,
+                'created_at' => $user->created_at ? $user->created_at->toDateString() : '2000-01-01',
             ]
         ]);
     }
