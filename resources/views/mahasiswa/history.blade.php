@@ -6,12 +6,15 @@
 <style>
     html, body { height: 100%; overflow: hidden; }
 
+    /* ════════════════════════════════════
+       WRAPPER
+    ════════════════════════════════════ */
     .hs-wrap {
         display: flex;
         flex-direction: column;
         height: 100%;
         width: 100%;
-        background: #f1f5f9;
+        background: #7A9E7E;   /* pastel green canvas — sama dengan notifikasi */
         overflow: hidden;
     }
 
@@ -110,7 +113,7 @@
     }
     .hs-body::-webkit-scrollbar { display: none; }
 
-    /* Filter row */
+    /* ── FILTER CHIP 3D ── */
     .hs-filter-row {
         display: flex;
         gap: 8px;
@@ -121,7 +124,7 @@
     }
     .hs-filter-row::-webkit-scrollbar { display: none; }
     .hs-filter-chip {
-        padding: 7px 16px;
+        padding: 7px 22px;
         border-radius: 999px;
         font-size: 12px;
         font-weight: 700;
@@ -129,103 +132,175 @@
         cursor: pointer;
         font-family: inherit;
         white-space: nowrap;
-        transition: all 0.15s;
-        background: #fff;
-        color: #6B7280;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        transition: all 0.18s;
+        background: rgba(255,255,255,0.28);
+        color: rgba(255,255,255,0.92);
+        box-shadow:
+            0 4px 0 rgba(0,0,0,0.22),
+            0 6px 16px rgba(0,0,0,0.14),
+            0 1px 0 rgba(255,255,255,0.30) inset;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
     }
     .hs-filter-chip.active {
         background: #1B5E35;
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(27,94,53,0.3);
+        color: #FFD54F;
+        box-shadow:
+            0 4px 0 #0d3d1f,
+            0 6px 20px rgba(27,94,53,0.55),
+            0 1px 0 rgba(255,255,255,0.18) inset;
+    }
+    .hs-filter-chip:active {
+        transform: translateY(4px);
+        box-shadow:
+            0 0 0 rgba(0,0,0,0),
+            0 2px 6px rgba(0,0,0,0.12);
     }
 
-    /* Month group label */
+    /* ── MONTH LABEL ── */
     .hs-month-label {
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 800;
-        color: #9CA3AF;
+        color: rgba(255,255,255,0.82);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         margin: 16px 0 8px;
+        padding-left: 2px;
     }
 
-    /* History card */
+    /* ════════════════════════════════════
+       HISTORY CARD — 3D, selaras notifikasi
+    ════════════════════════════════════ */
     .hs-card {
         background: #fff;
-        border-radius: 16px;
-        padding: 14px 16px;
-        margin-bottom: 10px;
+        border-radius: 18px;
+        padding: 14px 14px;
+        margin-bottom: 14px;
         display: flex;
+        gap: 12px;
         align-items: center;
-        gap: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        /* Layered 3D shadow */
+        box-shadow:
+            0 5px 0 #b8d0bb,
+            0 8px 24px rgba(0,0,0,0.18),
+            0 1px 4px rgba(0,0,0,0.08);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        position: relative;
+        overflow: hidden;
+        border-left: 4px solid #1B5E35;
     }
-    .hs-date-box {
+    .hs-card:active {
+        transform: translateY(4px) scale(0.985);
+        box-shadow:
+            0 1px 0 #b8d0bb,
+            0 3px 10px rgba(0,0,0,0.14);
+    }
+    .hs-card:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 7px 0 #b8d0bb,
+            0 12px 32px rgba(0,0,0,0.20),
+            0 1px 4px rgba(0,0,0,0.08);
+    }
+    .hs-card.absen-card {
+        border-left-color: #DC2626;
+        box-shadow:
+            0 5px 0 #f5c5c5,
+            0 8px 24px rgba(0,0,0,0.18),
+            0 1px 4px rgba(0,0,0,0.08);
+    }
+    .hs-card.absen-card:hover {
+        box-shadow:
+            0 7px 0 #f5c5c5,
+            0 12px 32px rgba(0,0,0,0.20);
+    }
+    .hs-card.absen-card:active {
+        box-shadow:
+            0 1px 0 #f5c5c5,
+            0 3px 10px rgba(0,0,0,0.14);
+    }
+
+    /* ── ICON CIRCLE — identik nt-icon notifikasi ── */
+    .hs-card-icon {
         width: 46px;
-        height: 50px;
-        border-radius: 12px;
-        background: #F0FDF4;
-        border: 1.5px solid #BBF7D0;
+        height: 46px;
+        border-radius: 50%;
+        background: #1B5E35;
+        flex-shrink: 0;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
-    }
-    .hs-date-box.absen {
-        background: #FEF2F2;
-        border-color: #FECACA;
-    }
-    .hs-date-day {
-        font-size: 18px;
+        font-family: 'Playfair Display', 'Georgia', serif;
+        font-style: italic;
         font-weight: 800;
-        color: #14532D;
+        color: #fff;
+        font-size: 22px;
         line-height: 1;
+        box-shadow:
+            0 3px 10px rgba(27,94,53,0.40),
+            0 2px 0 rgba(255,255,255,0.15) inset;
     }
-    .hs-date-box.absen .hs-date-day { color: #DC2626; }
-    .hs-date-month {
-        font-size: 9px;
-        font-weight: 700;
-        color: #6EE7B7;
-        text-transform: uppercase;
-        margin-top: 2px;
+    .hs-card-icon.absen {
+        background: #DC2626;
+        box-shadow:
+            0 3px 10px rgba(220,38,38,0.40),
+            0 2px 0 rgba(255,255,255,0.15) inset;
     }
-    .hs-date-box.absen .hs-date-month { color: #FCA5A5; }
+
+    /* ── CARD CONTENT ── */
     .hs-card-content { flex: 1; min-width: 0; }
+    .hs-card-meta-top {
+        font-size: 11px;
+        font-weight: 700;
+        color: #9CA3AF;
+        margin-bottom: 3px;
+    }
+    .hs-card-meta-top strong { color: #374151; }
     .hs-card-mk {
         font-size: 14px;
         font-weight: 800;
         color: #111827;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .hs-card-meta {
-        font-size: 11.5px;
+    .hs-card-detail {
+        font-size: 12px;
         color: #6B7280;
         font-weight: 600;
+        line-height: 1.55;
     }
-    .hs-card-time {
-        font-size: 11px;
-        color: #9CA3AF;
-        font-weight: 600;
-        margin-top: 2px;
-    }
+    .hs-card-detail i { color: #1B5E35; margin-right: 3px; }
+
+    /* ── STATUS PILL ── */
     .hs-status-pill {
         font-size: 11px;
         font-weight: 700;
-        padding: 5px 12px;
+        padding: 6px 13px;
         border-radius: 999px;
         white-space: nowrap;
         flex-shrink: 0;
+        align-self: flex-start;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.10);
     }
-    .hs-status-pill.hadir  { background: #D1FAE5; color: #065F46; }
-    .hs-status-pill.absen  { background: #FEE2E2; color: #DC2626; }
-    .hs-status-pill.izin   { background: #FEF3C7; color: #92400E; }
+    .hs-status-pill.hadir {
+        background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+        color: #065F46;
+        box-shadow: 0 2px 6px rgba(16,185,129,0.28);
+    }
+    .hs-status-pill.absen {
+        background: linear-gradient(135deg, #FEE2E2, #FECACA);
+        color: #DC2626;
+        box-shadow: 0 2px 6px rgba(220,38,38,0.22);
+    }
+    .hs-status-pill.izin {
+        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+        color: #92400E;
+        box-shadow: 0 2px 6px rgba(245,158,11,0.22);
+    }
 
-    /* Empty state */
+    /* ── EMPTY STATE ── */
     .hs-empty {
         display: flex;
         flex-direction: column;
@@ -235,8 +310,8 @@
         gap: 12px;
         text-align: center;
     }
-    .hs-empty i { font-size: 48px; color: #D1D5DB; }
-    .hs-empty p { color: #9CA3AF; font-size: 14px; font-weight: 600; }
+    .hs-empty i { font-size: 48px; color: rgba(255,255,255,0.5); }
+    .hs-empty p { color: rgba(255,255,255,0.78); font-size: 14px; font-weight: 600; }
 
     /* ── BOTTOM BAR ── */
     .hs-bottom-bar {
@@ -270,38 +345,27 @@
     .hs-fab:hover { transform: translateX(-50%) scale(1.07); }
 
     /* ══════════════════════════════
-       RESPONSIVE DESKTOP ADJUSTMENTS
+       RESPONSIVE DESKTOP
     ══════════════════════════════ */
     @media (min-width: 768px) {
-        /* Header row: center content, full-width green bg */
         .hs-header-row {
             max-width: 960px;
             margin-left: auto;
             margin-right: auto;
             width: 100%;
         }
-        /* Tabs: center items, full-width bg */
-        .hs-tabs {
-            gap: 0;
-            justify-content: center;
-        }
-        .hs-tab {
-            flex: 0 1 auto;
-            min-width: 120px;
-        }
-        /* Summary bar: full-width bg, center inner content via padding */
+        .hs-tabs { gap: 0; justify-content: center; }
+        .hs-tab { flex: 0 1 auto; min-width: 120px; }
         .hs-summary {
             padding-left: max(16px, calc((100% - 960px) / 2));
             padding-right: max(16px, calc((100% - 960px) / 2));
         }
-        /* Body: centered */
         .hs-body {
             max-width: 960px;
             margin: 0 auto;
             width: 100%;
             padding: 24px 24px 0;
         }
-        /* Hide mobile bottom bar, use fixed FAB */
         .hs-bottom-bar { display: none; }
         .hs-fab {
             position: fixed;
@@ -323,7 +387,7 @@
     $userName = $user->name;
     $userNim  = $user->nim ?? '-';
 
-    // Ambil riwayat presensi dari DB, atau gunakan data dummy
+    // Ambil riwayat presensi dari DB
     try {
         $presensiList = \App\Models\Presensi::where('user_id', $user->id)
             ->with('jadwal.mataKuliah')
@@ -341,9 +405,7 @@
         $totalAbsen   = 0;
     }
 
-    // Jika belum ada data, tampilkan contoh dummy (diubah menjadi kosong agar tidak memunculkan data palsu)
     $dummy = [];
-
     $dummyHadir = 0;
     $dummyAbsen = 0;
 
@@ -401,11 +463,9 @@
     {{-- ── BODY ── --}}
     <div class="hs-body">
 
-        {{-- Filter chips --}}
+        {{-- Filter chip --}}
         <div class="hs-filter-row">
             <button class="hs-filter-chip active" data-filter="semua">Semua</button>
-            <button class="hs-filter-chip" data-filter="hadir">Hadir</button>
-            <button class="hs-filter-chip" data-filter="absen">Absen</button>
         </div>
 
         {{-- List from DB --}}
@@ -427,16 +487,24 @@
                     @php $lastMonth = $monthLabel; @endphp
                 @endif
 
-                <div class="hs-card" data-status="{{ $status }}">
-                    <div class="hs-date-box {{ $status }}">
-                        <span class="hs-date-day">{{ $dayNum }}</span>
-                        <span class="hs-date-month">{{ $monthShort }}</span>
-                    </div>
+                <div class="hs-card {{ $status === 'absen' ? 'absen-card' : '' }}" data-status="{{ $status }}">
+                    {{-- Icon circle — seperti nt-icon di notifikasi --}}
+                    <div class="hs-card-icon {{ $status === 'absen' ? 'absen' : '' }}">P</div>
+
+                    {{-- Content --}}
                     <div class="hs-card-content">
+                        <div class="hs-card-meta-top">
+                            <strong>PresGo</strong> &bull; {{ $dayNum }} {{ $monthShort }}
+                        </div>
                         <div class="hs-card-mk">{{ $mkName }}</div>
-                        <div class="hs-card-meta"><i class="fa-solid fa-location-dot" style="color:#1B5E35;"></i> {{ $ruangan }}</div>
-                        <div class="hs-card-time"><i class="fa-regular fa-clock"></i> {{ $jamLabel }}</div>
+                        <div class="hs-card-detail">
+                            <i class="fa-solid fa-location-dot"></i>{{ $ruangan }}
+                            &nbsp;&bull;&nbsp;
+                            <i class="fa-regular fa-clock"></i>{{ $jamLabel }}
+                        </div>
                     </div>
+
+                    {{-- Status pill --}}
                     <span class="hs-status-pill {{ $status }}">{{ ucfirst($status) }}</span>
                 </div>
             @endforeach
@@ -456,15 +524,18 @@
                     @php $lastMonth = $monthLabel; @endphp
                 @endif
 
-                <div class="hs-card" data-status="{{ $d['status'] }}">
-                    <div class="hs-date-box {{ $d['status'] }}">
-                        <span class="hs-date-day">{{ $dayNum }}</span>
-                        <span class="hs-date-month">{{ $monthShort }}</span>
-                    </div>
+                <div class="hs-card {{ $d['status'] === 'absen' ? 'absen-card' : '' }}" data-status="{{ $d['status'] }}">
+                    <div class="hs-card-icon {{ $d['status'] === 'absen' ? 'absen' : '' }}">P</div>
                     <div class="hs-card-content">
+                        <div class="hs-card-meta-top">
+                            <strong>PresGo</strong> &bull; {{ $dayNum }} {{ $monthShort }}
+                        </div>
                         <div class="hs-card-mk">{{ $d['mk'] }}</div>
-                        <div class="hs-card-meta"><i class="fa-solid fa-location-dot" style="color:#1B5E35;"></i> {{ $d['ruangan'] }}</div>
-                        <div class="hs-card-time"><i class="fa-regular fa-clock"></i> {{ $d['jam'] }}</div>
+                        <div class="hs-card-detail">
+                            <i class="fa-solid fa-location-dot"></i>{{ $d['ruangan'] }}
+                            &nbsp;&bull;&nbsp;
+                            <i class="fa-regular fa-clock"></i>{{ $d['jam'] }}
+                        </div>
                     </div>
                     <span class="hs-status-pill {{ $d['status'] }}">{{ ucfirst($d['status']) }}</span>
                 </div>
