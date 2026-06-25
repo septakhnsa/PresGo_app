@@ -160,7 +160,7 @@
         padding: 20px;
     }
     .h-modal-card {
-        background: #fff;
+        background: #f3f4f6;
         border-radius: 24px;
         width: 100%;
         overflow: hidden;

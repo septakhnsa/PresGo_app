@@ -253,15 +253,21 @@ class MahasiswaWebController extends Controller
             $jamSelesai = substr($j->jam_selesai, 0, 5);
 
             $mappedJadwal[] = [
-                'id' => $j->id,
-                'mata_kuliah' => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
-                'dosen' => $j->dosen ?? 'Dosen Pengampu',
-                'jam' => "{$jamMulai} – {$jamSelesai}",
-                'ruangan' => $j->ruangan,
-                'status' => $status,
-                'foto_wajah' => $fotoWajah,
+                'id'            => $j->id,
+                'mata_kuliah'   => $j->mataKuliah->nama_mk ?? 'Mata Kuliah',
+                'dosen'         => $j->dosen ?? 'Dosen Pengampu',
+                'jam'           => "{$jamMulai} – {$jamSelesai}",
+                'ruangan'       => $j->ruangan,
+                'status'        => $status,
+                'foto_wajah'    => $fotoWajah,
                 'jam_mulai_raw' => $j->jam_mulai,
                 'jam_selesai_raw' => $j->jam_selesai,
+                // Data presensi jika sudah hadir
+                'jam_masuk'       => $absen ? substr($absen->jam_masuk, 0, 5) : null,
+                'tanggal_submit'  => $absen ? \Carbon\Carbon::parse($absen->tanggal)->translatedFormat('l, d F Y') : null,
+                'waktu_submit'    => $absen ? \Carbon\Carbon::parse($absen->tanggal->toDateString() . ' ' . $absen->jam_masuk)->translatedFormat('l, d F Y — H:i') . ' WIB' : null,
+                'latitude'        => $absen ? $absen->latitude : null,
+                'longitude'       => $absen ? $absen->longitude : null,
             ];
         }
 
