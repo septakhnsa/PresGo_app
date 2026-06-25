@@ -19,6 +19,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'krs_completed',
         'face_photo_path',
         'face_embedding',
     ];
