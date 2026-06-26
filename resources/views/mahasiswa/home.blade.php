@@ -97,6 +97,119 @@
     }
 
     /* ══════════════════════════════
+       GPS HUD PANEL (pojok kiri bawah)
+    ══════════════════════════════ */
+    .h-gps-hud {
+        position: absolute;
+        bottom: 16px;
+        left: 14px;
+        z-index: 20;
+        background: rgba(15, 23, 42, 0.82);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+        border-radius: 12px;
+        padding: 10px 13px;
+        min-width: 190px;
+        max-width: 230px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .h-gps-hud-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 9px;
+        font-weight: 700;
+        color: #4ADE80;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+    .h-gps-hud-dot {
+        width: 6px;
+        height: 6px;
+        background: #4ADE80;
+        border-radius: 50%;
+        animation: hudPulse 1.4s ease-in-out infinite;
+        flex-shrink: 0;
+    }
+    @keyframes hudPulse {
+        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
+        50% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(74,222,128,0); }
+    }
+    .h-gps-hud-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .h-gps-hud-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+    .h-gps-hud-label {
+        font-size: 9px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.45);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    .h-gps-hud-val {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        text-align: right;
+    }
+    .h-gps-hud-divider {
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        margin: 6px 0;
+    }
+    .h-gps-hud-dist {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+    }
+    .h-gps-hud-dist-val {
+        font-size: 15px;
+        font-weight: 800;
+        color: #FDE047;
+        font-family: 'Courier New', monospace;
+        line-height: 1;
+    }
+    .h-gps-hud-dist-lbl {
+        font-size: 9px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.45);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .h-gps-hud-status {
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 4px;
+        text-align: center;
+        width: 100%;
+        display: block;
+    }
+    .h-gps-hud-status.in-range {
+        background: rgba(74,222,128,0.15);
+        color: #4ADE80;
+    }
+    .h-gps-hud-status.out-range {
+        background: rgba(239,68,68,0.15);
+        color: #F87171;
+    }
+
+    /* ══════════════════════════════
        YELLOW ABSENSI CARD (floating on map)
     ══════════════════════════════ */
     .h-absensi-card {
@@ -342,12 +455,38 @@
         </div>
     </div>
 
-    {{-- ── BOTTOM BAR ── --}}
-    <div class="h-bottom-bar">
-        <a href="{{ route('mahasiswa.presensi.camera') }}" class="h-fab">
-            <i class="fa-solid fa-camera"></i>
-        </a>
+    {{-- ── GPS HUD (pojok kiri bawah map) ── --}}
+    <div class="h-gps-hud" id="gpsHud">
+        <div class="h-gps-hud-title">
+            <span class="h-gps-hud-dot"></span>
+            Live GPS Radar
+        </div>
+        <div class="h-gps-hud-row">
+            <div class="h-gps-hud-item">
+                <span class="h-gps-hud-label">Lat</span>
+                <span class="h-gps-hud-val" id="hudLat">—</span>
+            </div>
+            <div class="h-gps-hud-item">
+                <span class="h-gps-hud-label">Lng</span>
+                <span class="h-gps-hud-val" id="hudLng">—</span>
+            </div>
+            <div class="h-gps-hud-item">
+                <span class="h-gps-hud-label">Akurasi</span>
+                <span class="h-gps-hud-val" id="hudAcc">—</span>
+            </div>
+        </div>
+        <hr class="h-gps-hud-divider">
+        <div class="h-gps-hud-dist">
+            <div>
+                <div class="h-gps-hud-dist-val" id="hudDist">—</div>
+                <div class="h-gps-hud-dist-lbl">jarak ke kampus</div>
+            </div>
+        </div>
+        <span class="h-gps-hud-status out-range" id="hudStatus">Menghitung...</span>
     </div>
+
+    {{-- ── BOTTOM BAR (tanpa FAB) ── --}}
+    <div class="h-bottom-bar" style="background:#1B5E35;height:10px;flex-shrink:0;"></div>
 
 </div>
 @endsection
@@ -357,26 +496,65 @@
 <script>
     // ── MAP ──
     const map = L.map('map', { zoomControl: false, attributionControl: false })
-                  .setView([-7.412, 109.25], 15);
+                  .setView([-7.4420, 109.2658], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
                 { maxZoom: 19 }).addTo(map);
 
-    // Titik Acuan Kampus STMIK Widya Utama (Berkoh)
-    const campusLatLng = [-7.442651, 109.260515];
+    // Titik Acuan Kampus STMIK Widya Utama
+    // Jl. Sunan Kalijaga, Dusun III, Berkoh, Purwokerto Selatan
+    const campusLatLng = [-7.4420, 109.2658];
     const campusIcon = L.divIcon({
-        html: '<div style="width:24px;height:24px;background:#DC2626;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:bold;">K</div>',
-        className: '', iconSize: [24,24], iconAnchor: [12,12]
+        html: '<div style="width:28px;height:28px;background:#DC2626;border:3px solid #fff;border-radius:50%;box-shadow:0 0 10px rgba(220,38,38,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold;">K</div>',
+        className: '', iconSize: [28,28], iconAnchor: [14,14]
     });
-    L.marker(campusLatLng, {icon: campusIcon}).addTo(map).bindPopup('<b>STMIK Widya Utama</b><br>Jl. Sunan Kalijaga, Berkoh');
+    L.marker(campusLatLng, {icon: campusIcon}).addTo(map)
+      .bindPopup('<b>STMIK Widya Utama</b><br>Jl. Sunan Kalijaga, Dusun III, Berkoh<br>Purwokerto Selatan, Banyumas');
 
     let _marker;
     let _polyline;
 
+    // ── Haversine Distance Formula ──
+    function haversineDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371000; // meter
+        const toRad = x => x * Math.PI / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+                + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
+                * Math.sin(dLng/2) * Math.sin(dLng/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // ── Update HUD Panel ──
+    function updateHud(lat, lng, acc) {
+        document.getElementById('hudLat').textContent = lat.toFixed(6);
+        document.getElementById('hudLng').textContent = lng.toFixed(6);
+        document.getElementById('hudAcc').textContent = '±' + Math.round(acc) + 'm';
+
+        const dist = haversineDistance(lat, lng, campusLatLng[0], campusLatLng[1]);
+        const distText = dist >= 1000
+            ? (dist/1000).toFixed(2) + ' km'
+            : Math.round(dist) + ' m';
+        document.getElementById('hudDist').textContent = distText;
+
+        const statusEl = document.getElementById('hudStatus');
+        if (dist <= 50) {
+            statusEl.textContent = '✓ Dalam Radius Kampus';
+            statusEl.className = 'h-gps-hud-status in-range';
+        } else {
+            statusEl.textContent = '✗ Di Luar Radius Kampus';
+            statusEl.className = 'h-gps-hud-status out-range';
+        }
+    }
+
     if ('geolocation' in navigator) {
         navigator.geolocation.watchPosition(pos => {
-            const { latitude: lat, longitude: lng } = pos.coords;
+            const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
             const userLatLng = [lat, lng];
-            
+
+            // Update HUD
+            updateHud(lat, lng, acc);
+
             // Marker User
             const userIcon = L.divIcon({
                 html: '<div style="width:18px;height:18px;background:#1D4ED8;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(0,0,0,.3)"></div>',
@@ -393,20 +571,22 @@
             if (!_polyline) {
                 _polyline = L.polyline([userLatLng, campusLatLng], {
                     color: '#1B5E35',
-                    weight: 4,
-                    opacity: 0.8,
-                    dashArray: '10, 10',
+                    weight: 3,
+                    opacity: 0.7,
+                    dashArray: '8, 8',
                     lineJoin: 'round'
                 }).addTo(map);
             } else {
                 _polyline.setLatLngs([userLatLng, campusLatLng]);
             }
-            
-            // Fit bounds agar kedua titik (user & kampus) terlihat di map
-            const bounds = L.latLngBounds([userLatLng, campusLatLng]);
-            map.fitBounds(bounds, { padding: [50, 50] });
 
-        }, () => {}, { enableHighAccuracy: true, maximumAge: 0 });
+            // Fit bounds agar kedua titik terlihat
+            const bounds = L.latLngBounds([userLatLng, campusLatLng]);
+            map.fitBounds(bounds, { padding: [60, 60] });
+
+        }, () => {
+            document.getElementById('hudStatus').textContent = 'GPS Tidak Tersedia';
+        }, { enableHighAccuracy: true, maximumAge: 0 });
     }
 
     // Close welcome after 500ms on first load (or let user dismiss)
