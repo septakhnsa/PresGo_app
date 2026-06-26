@@ -161,6 +161,8 @@ class MahasiswaWebController extends Controller
     {
         \Carbon\Carbon::setLocale('id');
         $hariIni = now()->translatedFormat('l');
+
+        /** @var User $user */
         $user = Auth::user();
 
         $jadwalHariIni = $user->jadwals()->where('hari', $hariIni)->with('mataKuliah')->get();
@@ -218,6 +220,7 @@ class MahasiswaWebController extends Controller
      */
     public function dashboardPresensi()
     {
+        /** @var User $user */
         $user = Auth::user();
         
         \Carbon\Carbon::setLocale('id');
@@ -325,6 +328,7 @@ class MahasiswaWebController extends Controller
      */
     public function notifikasi()
     {
+        /** @var User $user */
         $user = Auth::user();
         
         // Hapus notifikasi "Presensi Berhasil" jika data presensi aslinya sudah tidak ada di DB
@@ -449,7 +453,9 @@ class MahasiswaWebController extends Controller
 
         // Kirim notifikasi realtime & background ke user
         if ($jadwal) {
-            Auth::user()->notify(new PresensiBerhasilNotification($jadwal));
+            /** @var User $authUser */
+            $authUser = Auth::user();
+            $authUser->notify(new PresensiBerhasilNotification($jadwal));
         }
 
         return response()->json([
@@ -487,6 +493,8 @@ class MahasiswaWebController extends Controller
         $endpoint = $request->endpoint;
         $token = $request->keys['auth'];
         $key = $request->keys['p256dh'];
+
+        /** @var User $user */
         $user = Auth::user();
         $user->updatePushSubscription($endpoint, $key, $token);
         
@@ -499,7 +507,10 @@ class MahasiswaWebController extends Controller
     public function markAsRead(Request $request)
     {
         $id = $request->input('id');
-        $notification = Auth::user()->notifications()->where('id', $id)->first();
+
+        /** @var User $user */
+        $user = Auth::user();
+        $notification = $user->notifications()->where('id', $id)->first();
         if ($notification) {
             $notification->markAsRead();
         }
@@ -511,7 +522,9 @@ class MahasiswaWebController extends Controller
      */
     public function markAllAsRead()
     {
-        Auth::user()->unreadNotifications->markAsRead();
+        /** @var User $user */
+        $user = Auth::user();
+        $user->unreadNotifications->markAsRead();
         return response()->json(['success' => true]);
     }
 
@@ -520,7 +533,9 @@ class MahasiswaWebController extends Controller
      */
     public function deleteAllNotifications()
     {
-        Auth::user()->notifications()->delete();
+        /** @var User $user */
+        $user = Auth::user();
+        $user->notifications()->delete();
         return response()->json(['success' => true]);
     }
 
@@ -534,6 +549,7 @@ class MahasiswaWebController extends Controller
      */
     public function krsPage()
     {
+        /** @var User $user */
         $user = Auth::user();
 
         // Jika sudah approved (krs_completed == 1), redirect ke beranda
@@ -565,6 +581,7 @@ class MahasiswaWebController extends Controller
             'jadwal_ids.min'      => 'Pilih minimal 1 mata kuliah.',
         ]);
 
+        /** @var User $user */
         $user = Auth::user();
 
         // Hapus KRS pending lama (jika ada) agar bisa submit ulang
@@ -588,6 +605,7 @@ class MahasiswaWebController extends Controller
      */
     public function pollKrsStatus()
     {
+        /** @var User $user */
         $user = Auth::user();
         return response()->json([
             'krs_completed' => (string) $user->fresh()->krs_completed,
