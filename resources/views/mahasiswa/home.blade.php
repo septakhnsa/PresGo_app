@@ -504,7 +504,7 @@
     // Source: DB presence_locations id=1 "Kampus utama (berkoh)"
     // Lat: -7.4392266 | Lng: 109.2662131 | Radius: 100m
     const campusLatLng  = [-7.4392266, 109.2662131];
-    const CAMPUS_RADIUS = 100; // meter — sesuai DB
+    const CAMPUS_RADIUS = 100; // meter 
     const campusIcon = L.divIcon({
         html: '<div style="width:28px;height:28px;background:#DC2626;border:3px solid #fff;border-radius:50%;box-shadow:0 0 10px rgba(220,38,38,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold;">K</div>',
         className: '', iconSize: [28,28], iconAnchor: [14,14]
@@ -540,7 +540,7 @@
         document.getElementById('hudDist').textContent = distText;
 
         const statusEl = document.getElementById('hudStatus');
-        if (dist <= 50) {
+        if (dist <= 100) {
             statusEl.textContent = '✓ Dalam Radius Kampus';
             statusEl.className = 'h-gps-hud-status in-range';
         } else {
